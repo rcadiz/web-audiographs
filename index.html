@@ -8,10 +8,14 @@
 	audiograph.setup()
 	.then(() => {
 		if (audiograph.initialized) {
-			keyBindings.add(['Digit1'], audiograph.playKey1);
-			keyBindings.add(['Digit2'], audiograph.playKey2);
+			var playSeries = function () {
+				audiograph.playValues([50, 25, 10, 0, 25, 50, 90, 75])
+			}
+			keyBindings.add(['Digit1'], audiograph.playKey1)
+			keyBindings.add(['Digit2'], audiograph.playKey2)
+			keyBindings.add(['KeyA'], playSeries)
 
-			window.addEventListener("load", audiograph.start);
+			window.addEventListener("load", audiograph.start)
 		} else {
 			alert('audiograph is not initialized')
 		}

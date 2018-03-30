@@ -4,8 +4,8 @@ Code generated with Faust version 2.5.25
 Compilation options: wasm-e, -scal -ftz 2
 */
 
-function getJSONorgan() {
-	return "{\"name\":\"organ\",\"filename\":\"organ\",\"version\":\"2.5.25\",\"options\":\"wasm-e, -scal -ftz 2\",\"size\":\"68\",\"inputs\":\"0\",\"outputs\":\"1\",\"meta\":[{\"filename\":\"organ\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"organ\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"organ\",\"items\":[{\"type\":\"hslider\",\"label\":\"freq\",\"address\":\"/organ/freq\",\"index\":\"32\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"440\",\"min\":\"110\",\"max\":\"2200\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"gain\",\"address\":\"/organ/gain\",\"index\":\"8\",\"init\":\"0.5\",\"min\":\"0\",\"max\":\"10\",\"step\":\"0.01\"},{\"type\":\"button\",\"label\":\"gate\",\"address\":\"/organ/gate\",\"index\":\"4\"},{\"type\":\"hslider\",\"label\":\"volume\",\"address\":\"/organ/volume\",\"index\":\"0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"}]}]}";
+function getJSONinstrument() {
+	return "{\"name\":\"instrument\",\"filename\":\"instrument\",\"version\":\"2.5.25\",\"options\":\"wasm-e, -scal -ftz 2\",\"size\":\"68\",\"inputs\":\"0\",\"outputs\":\"1\",\"meta\":[{\"filename\":\"instrument\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"instrument\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"instrument\",\"items\":[{\"type\":\"hslider\",\"label\":\"freq\",\"address\":\"/instrument/freq\",\"index\":\"32\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"440\",\"min\":\"110\",\"max\":\"2200\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"gain\",\"address\":\"/instrument/gain\",\"index\":\"8\",\"init\":\"0.5\",\"min\":\"0\",\"max\":\"10\",\"step\":\"0.01\"},{\"type\":\"button\",\"label\":\"gate\",\"address\":\"/instrument/gate\",\"index\":\"4\"},{\"type\":\"hslider\",\"label\":\"volume\",\"address\":\"/instrument/volume\",\"index\":\"0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"}]}]}";
 }
 /*
  faust2webaudio
@@ -52,14 +52,14 @@ faust.debug = false;
  *
  * @return a valid WebAudio ScriptProcessorNode object or null
  */
-faust.organ_poly = function (mixer_instance, dsp_instance, effect_instance, memory, context, buffer_size, polyphony) {
+faust.instrument_poly = function (mixer_instance, dsp_instance, effect_instance, memory, context, buffer_size, polyphony) {
 
     // Resume audio context each time...
     context.resume();
     
     var json_object = null;
     try {
-        json_object = JSON.parse(getJSONorgan());
+        json_object = JSON.parse(getJSONinstrument());
     } catch (e) {
         faust.error_msg = "Error in JSON.parse: " + e;
         return null;
@@ -770,7 +770,7 @@ faust.createMemory = function (buffer_size, polyphony) {
 
     var json_object = null;
     try {
-        json_object = JSON.parse(getJSONorgan());
+        json_object = JSON.parse(getJSONinstrument());
     } catch (e) {
         faust.error_msg = "Error in JSON.parse: " + e;
         return null;
@@ -803,7 +803,7 @@ faust.createMemory = function (buffer_size, polyphony) {
  * @param polyphony - the number of polyphonic voices
  * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
  */
-faust.createorgan_poly = function(context, buffer_size, polyphony, callback)
+faust.createinstrument_poly = function(context, buffer_size, polyphony, callback)
 {
     var memory = faust.createMemory(buffer_size, polyphony);
    
@@ -870,14 +870,14 @@ faust.createorgan_poly = function(context, buffer_size, polyphony, callback)
     .then(mix_file => mix_file.arrayBuffer())
     .then(mix_bytes => WebAssembly.instantiate(mix_bytes, mixObject))
     .then(mix_module =>
-        fetch('organ.wasm')
+        fetch('instrument.wasm')
         .then(dsp_file => dsp_file.arrayBuffer())
         .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
         .then(dsp_module =>
-            fetch('organ_effect.wasm')
+            fetch('instrument_effect.wasm')
             .then(effect_file => effect_file.arrayBuffer())
             .then(effect_bytes => WebAssembly.instantiate(effect_bytes, importObject))
-            .then(effect_module => callback(faust.organ_poly(mix_module.instance,
+            .then(effect_module => callback(faust.instrument_poly(mix_module.instance,
                                                                dsp_module.instance,
                                                                effect_module.instance,
                                                                memory,
@@ -886,17 +886,16 @@ faust.createorgan_poly = function(context, buffer_size, polyphony, callback)
                                                                polyphony)))
             .catch(function(error) {
                    console.log(error);
-                   callback(faust.organ_poly(mix_module.instance,
+                   callback(faust.instrument_poly(mix_module.instance,
                                              dsp_module.instance,
                                              null,
                                              memory,
                                              context,
                                              buffer_size,
                                              polyphony)); }))
-        .catch(function(error) { console.log(error); faust.error_msg = "Faust organ_poly cannot be loaded or compiled"; callback(null); }))
-    .catch(function(error) { console.log(error); faust.error_msg = "Faust organ_poly cannot be loaded or compiled"; callback(null); });
+        .catch(function(error) { console.log(error); faust.error_msg = "Faust instrument_poly cannot be loaded or compiled"; callback(null); }))
+    .catch(function(error) { console.log(error); faust.error_msg = "Faust instrument_poly cannot be loaded or compiled"; callback(null); });
 }
 
-faust.create_poly = faust.createorgan_poly
-
 export default faust;
+
