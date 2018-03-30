@@ -897,3 +897,6 @@ faust.createorgan_poly = function(context, buffer_size, polyphony, callback)
     .catch(function(error) { console.log(error); faust.error_msg = "Faust organ_poly cannot be loaded or compiled"; callback(null); });
 }
 
+faust.create_poly = faust.createorgan_poly
+
+export default faust;

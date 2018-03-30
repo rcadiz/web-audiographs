@@ -1,47 +1,24 @@
 <html>
-<script type="text/javascript" src="organ.js"></script>
+<script type="text/javascript" src="audiograph.js"></script>
 <script type="text/javascript" src="keyhandler.js"></script>
+
 <body>
 	organ
 <script type="text/javascript">
+	audiograph.setup()
+	.then(() => {
+		if (audiograph.initialized) {
+			keyBindings.add(['Digit1'], audiograph.playKey1);
+			keyBindings.add(['Digit2'], audiograph.playKey2);
 
-	var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-	var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-	var organ = null;
-
-	function startOrgan() {
-		faust.createorgan_poly(audio_context, 1024, 6, 
-			function (node) {
-				organ = node;
-	            // Print paths to be used with 'setParamValue'
-	            console.log(organ.getParams());
-	            // Connect it to output as a regular WebAudio node
-	            organ.connect(audio_context.destination);
-				console.log(organ);
-				console.log(organ.getParamValue('/organ/freq'));
-				console.log(organ.getParamValue('/organ/gain'));
-				console.log(organ.getParamValue('/organ/volume'));
-				console.log(organ.getParamValue('/organ/gate'));
-				//organ.keyOn(1, 64, 10);
-			});
-	}
-
-	function playKey1() {
-		playKey('Digit1');
-	}
-
-	function playKey2() {
-		playKey('Digit2');
-	}
-
-	function playKey(key) {
-		console.log('Called: ' + key);
-	}
-
-	window.addEventListener("load", startOrgan);
-
-	keyBindings.add(['Digit1'], playKey1);
-	keyBindings.add(['Digit2'], playKey2);
+			window.addEventListener("load", audiograph.start);
+		} else {
+			alert('audiograph is not initialized')
+		}
+	})
+	.catch(error => {
+		console.error(error)
+	})
 </script>
 </body>
 </html>
