@@ -13,11 +13,6 @@ audiograph.setup = function() {
 		audiograph.audio_context = (audiograph.isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 		audiograph.dsp = null;
 
-		audiograph.axis_x = {
-			min: 0,
-			max: 100
-		}
-
 		audiograph.axis_y = {
 			min: 0,
 			max: 100
@@ -40,10 +35,8 @@ audiograph.setup = function() {
 				function (node) {
 					audiograph.dsp = node;
 					if (audiograph.debug) {
-			            // Print paths to be used with 'setParamValue'
 			            console.log(audiograph.dsp.getParams());					
 					}
-		            // Connect it to output as a regular WebAudio node
 		            audiograph.dsp.connect(audiograph.audio_context.destination);
 				});
 		}
@@ -57,34 +50,22 @@ audiograph.setup = function() {
 				play()
 			}
 			var play = function () {
-				console.log('current: ' + current)
+				if (audiograph.debug) {
+					console.log('current index in series: ' + current)
+				}
 				if (current < values.length) {
-					console.log('current value: ' + values[current])
+					if (audiograph.debug) {
+						console.log('current value in series: ' + values[current])
+					}
 					var pitch = audiograph.valueToPitch(values[current])
-					console.log('current pitch: ' + pitch)
+					if (audiograph.debug) {
+						console.log('pitch for current value in series: ' + pitch)
+					}
 					audiograph.dsp.keyOn(1, pitch, 127)
 					timeout = setTimeout(next, 1000)
 				}
 			}
 			play()
-		}
-
-		audiograph.playKey1 = function () {
-			audiograph.playKey(64)
-		}
-
-		audiograph.playKey2 = function () {
-			audiograph.playKey(76)
-		}
-
-		audiograph.playKey = function (pitch) {
-			audiograph.dsp.allNotesOff()
-			audiograph.dsp.keyOn(1, pitch, 127)
-			setTimeout(audiograph.stopKey, 2000)
-		}
-
-		audiograph.stopKey = function () {
-			audiograph.dsp.allNotesOff()
 		}
 
 		audiograph.initialized = true
