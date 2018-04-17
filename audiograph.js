@@ -22,13 +22,13 @@ audiograph.setup = function() {
 			player: {
 				durations: { //all in milliseconds
 					value: 200,
-					delayBetweenValues: 0,
+					delayBetweenValues: 400,
 				},
-				volume: 1.0,
+				velocity: 127, // 0:127
 			},
 			pitch: {
-				min: 40,
-				max: 80
+				min: 40, // 0:127
+				max: 100, // 0:127
 			}
 		}
 
@@ -60,46 +60,89 @@ audiograph.setup = function() {
 		}
 
 		audiograph.play = function (pitch) {
-			audiograph.dsp.keyOn(1, pitch, audiograph.settings.player.volume * 127)
+			audiograph.dsp.keyOn(1, pitch, audiograph.settings.player.velocity)
 		}
 
-		audiograph.playValues = function (values) {
-			var current = 0
-			var timeout = null
-			var delay = function () {
-				if (audiograph.debug) {
-					console.log("Delaying next value")
-				}
-				audiograph.dsp.allNotesOff()
-				timeout = setTimeout(next, audiograph.settings.player.durations.delayBetweenValues)
-			}
-			var next = function () {
-				if (audiograph.debug) {
-					console.log("Playing next value")
-				}
-				audiograph.dsp.allNotesOff()
-				current++
-				playCurrentValue()
-			}
-			var playCurrentValue = function () {
-				var callback = (audiograph.settings.player.durations.delayBetweenValues > 0) ? delay : next
-				if (audiograph.debug) {
-					console.log('current index in series: ' + current)
-				}
-				if (current < values.length) {
+		audiograph.data = {
+			values: [],
+			play: function () {
+				var current = 0
+				var timeout = null
+				var values = audiograph.data.values
+				var delay = function () {
 					if (audiograph.debug) {
-						console.log('current value in series: ' + values[current])
+						console.log("Delaying next value")
 					}
-					var pitch = audiograph.valueToPitch(values[current])
+					audiograph.dsp.allNotesOff()
+					timeout = setTimeout(next, audiograph.settings.player.durations.delayBetweenValues)
+				}
+				var next = function () {
 					if (audiograph.debug) {
-						console.log('pitch for current value in series: ' + pitch)
+						console.log("Playing next value")
 					}
-					audiograph.play(pitch)
-					timeout = setTimeout(callback, audiograph.settings.player.durations.value)
+					audiograph.dsp.allNotesOff()
+					current++
+					value()
+				}
+				var value = function () {
+					var callback = (audiograph.settings.player.durations.delayBetweenValues > 0) ? delay : next
+					if (audiograph.debug) {
+						console.log('current index in series: ' + current)
+					}
+					if (current < values.length) {
+						if (audiograph.debug) {
+							console.log('current value in series: ' + values[current])
+						}
+						var pitch = audiograph.valueToPitch(values[current])
+						if (audiograph.debug) {
+							console.log('pitch for current value in series: ' + pitch)
+						}
+						audiograph.play(pitch)
+						timeout = setTimeout(callback, audiograph.settings.player.durations.value)
+					}
+				}
+				if (values.length > 0) {
+					value()
 				}
 			}
-			playCurrentValue()
 		}
+
+		audiograph.ui = {
+			checkboxScaleTypeAbsolute: null,
+			render: function (selector) {
+				var element = document.getElementById(selector)
+				if (audiograph.debug) {
+					console.log("Found " + selector)
+					console.log(element)
+				}
+
+				var createButton = function (text, handler) {
+					var button = document.createElement("button")
+					button.innerText = text
+					button.addEventListener("click", handler)
+					return button
+				}
+
+				audiograph.ui.checkboxScaleTypeAbsolute = document.createElement("input")
+				audiograph.ui.checkboxScaleTypeAbsolute.id = "scale-type-absolute"
+				audiograph.ui.checkboxScaleTypeAbsolute.type = "checkbox"
+				audiograph.ui.checkboxScaleTypeAbsolute.checked = true
+				
+				var checkboxLabel = document.createElement("label")
+				checkboxLabel.setAttribute('for', audiograph.ui.checkboxScaleTypeAbsolute.id)
+				checkboxLabel.innerText = "Usar escala absoluta"
+				
+				var checkboxContainer = document.createElement("div")
+				checkboxContainer.appendChild(audiograph.ui.checkboxScaleTypeAbsolute)
+				checkboxContainer.appendChild(checkboxLabel)
+
+				element.appendChild(checkboxContainer)
+				element.appendChild(createButton("Set audiograph mode to discrete", audiograph.activateDiscreteMode))
+				element.appendChild(createButton("Set audiograph mode to continuous", audiograph.activateContinuousMode))
+				element.appendChild(createButton("Play audiograph", audiograph.data.play))
+			}
+		}
+
 
 		audiograph.initialized = true
 	})

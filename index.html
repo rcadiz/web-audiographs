@@ -2,18 +2,23 @@
 <script type="text/javascript" src="audiograph.js"></script>
 
 <body>
-	organ
+	<h1>Audiographs</h1>
+	<div class="explanation">
+		<p>Explanation paragraph 1</p>
+		<p>Explanation paragraph 2</p>
+		<p>Explanation paragraph 3</p>
+	</div>
+	<div class="settings" id="audiograph-settings">
+	</div>
 <script type="text/javascript">
 	audiograph.setup()
 	.then(() => {
 		if (audiograph.initialized) {
-			var playSeries = function () {
-				audiograph.playValues([50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
-			}
-			audiograph.activateContinuousMode()
-			audiograph.activateDiscreteMode()
+			audiograph.data.values = [50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75]
+
+			audiograph.ui.render("audiograph-settings")
+
 			window.addEventListener("load", audiograph.start)
-			window.addEventListener("click", playSeries)
 		} else {
 			alert('Audiograph is not initialized')
 		}
