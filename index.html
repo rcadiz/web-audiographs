@@ -8,9 +8,12 @@
 	.then(() => {
 		if (audiograph.initialized) {
 			var playSeries = function () {
-				audiograph.playValues([50, 25, 10, 0, 25, 50, 90, 75])
+				audiograph.playValues([50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
 			}
+			audiograph.activateContinuousMode()
+			audiograph.activateDiscreteMode()
 			window.addEventListener("load", audiograph.start)
+			window.addEventListener("click", playSeries)
 		} else {
 			alert('Audiograph is not initialized')
 		}

@@ -1,6 +1,6 @@
-'use strict';
+'use strict'
 
-var audiograph = audiograph || {};
+var audiograph = audiograph || {}
 
 audiograph.initialized = false
 
@@ -9,9 +9,9 @@ audiograph.debug = true
 audiograph.setup = function() {
 	return import('./instrument.js')
 	.then(faust => {
-		audiograph.isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-		audiograph.audio_context = (audiograph.isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-		audiograph.dsp = null;
+		audiograph.isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
+		audiograph.audio_context = (audiograph.isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
+		audiograph.dsp = null
 
 		audiograph.axis_y = {
 			min: 0,
@@ -19,12 +19,29 @@ audiograph.setup = function() {
 		}
 
 		audiograph.settings = {
+			player: {
+				durations: { //all in milliseconds
+					value: 200,
+					delayBetweenValues: 0,
+				},
+				volume: 1.0,
+			},
 			pitch: {
 				min: 40,
 				max: 80
 			}
 		}
 
+		audiograph.activateDiscreteMode = function () {
+			audiograph.settings.player.durations.value = 200
+			audiograph.settings.player.durations.delayBetweenValues = 400
+		}
+
+		audiograph.activateContinuousMode = function () {
+			audiograph.settings.player.durations.value = 70
+			audiograph.settings.player.durations.delayBetweenValues = 0
+		}
+		
 		audiograph.valueToPitch = function (value) {
 			var pitchRange = audiograph.settings.pitch.max - audiograph.settings.pitch.min
 			return ((value * pitchRange) / audiograph.axis_y.max) + audiograph.settings.pitch.min
@@ -33,23 +50,39 @@ audiograph.setup = function() {
 		audiograph.start = function () {
 			faust.default.createinstrument_poly(audiograph.audio_context, 1024, 6, 
 				function (node) {
-					audiograph.dsp = node;
+					audiograph.dsp = node
 					if (audiograph.debug) {
-			            console.log(audiograph.dsp.getParams());					
+						console.log("Faust DSP params:")
+			            console.log(audiograph.dsp.getParams())
 					}
-		            audiograph.dsp.connect(audiograph.audio_context.destination);
-				});
+		            audiograph.dsp.connect(audiograph.audio_context.destination)
+				})
+		}
+
+		audiograph.play = function (pitch) {
+			audiograph.dsp.keyOn(1, pitch, audiograph.settings.player.volume * 127)
 		}
 
 		audiograph.playValues = function (values) {
 			var current = 0
 			var timeout = null
+			var delay = function () {
+				if (audiograph.debug) {
+					console.log("Delaying next value")
+				}
+				audiograph.dsp.allNotesOff()
+				timeout = setTimeout(next, audiograph.settings.player.durations.delayBetweenValues)
+			}
 			var next = function () {
+				if (audiograph.debug) {
+					console.log("Playing next value")
+				}
 				audiograph.dsp.allNotesOff()
 				current++
-				play()
+				playCurrentValue()
 			}
-			var play = function () {
+			var playCurrentValue = function () {
+				var callback = (audiograph.settings.player.durations.delayBetweenValues > 0) ? delay : next
 				if (audiograph.debug) {
 					console.log('current index in series: ' + current)
 				}
@@ -61,11 +94,11 @@ audiograph.setup = function() {
 					if (audiograph.debug) {
 						console.log('pitch for current value in series: ' + pitch)
 					}
-					audiograph.dsp.keyOn(1, pitch, 127)
-					timeout = setTimeout(next, 1000)
+					audiograph.play(pitch)
+					timeout = setTimeout(callback, audiograph.settings.player.durations.value)
 				}
 			}
-			play()
+			playCurrentValue()
 		}
 
 		audiograph.initialized = true
