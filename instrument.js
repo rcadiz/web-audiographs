@@ -898,4 +898,3 @@ faust.createinstrument_poly = function(context, buffer_size, polyphony, callback
 }
 
 export default faust;
-
