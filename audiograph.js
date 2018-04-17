@@ -13,11 +13,6 @@ audiograph.setup = function() {
 		audiograph.audio_context = (audiograph.isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
 		audiograph.dsp = null
 
-		audiograph.axis_y = {
-			min: 0,
-			max: 100
-		}
-
 		audiograph.settings = {
 			player: {
 				durations: { //all in milliseconds
@@ -29,6 +24,29 @@ audiograph.setup = function() {
 			pitch: {
 				min: 40, // 0:127
 				max: 100, // 0:127
+			},
+			scale: {
+				y: {
+					isRelative: false,
+					min: function () {
+						if (audiograph.settings.scale.y.isRelative) {
+							return audiograph.data.minValue()
+						} else {
+							return audiograph.settings.scale.y.absolute.min
+						}
+					},
+					max: function () {
+						if (audiograph.settings.scale.y.isRelative) {
+							return audiograph.data.maxValue()
+						} else {
+							return audiograph.settings.scale.y.absolute.max
+						}
+					}
+					absolute: {
+						min: 0,
+						max: 100,
+					},
+				}
 			}
 		}
 
@@ -43,8 +61,10 @@ audiograph.setup = function() {
 		}
 		
 		audiograph.valueToPitch = function (value) {
+			//TODO: update for isRelative
+			//TODO: update for 
 			var pitchRange = audiograph.settings.pitch.max - audiograph.settings.pitch.min
-			return ((value * pitchRange) / audiograph.axis_y.max) + audiograph.settings.pitch.min
+			return ((value * pitchRange) / audiograph.settings.scale.y.max()) + audiograph.settings.pitch.min
 		}
 
 		audiograph.start = function () {
@@ -65,6 +85,30 @@ audiograph.setup = function() {
 
 		audiograph.data = {
 			values: [],
+			maxValue: function () {
+				if (audiograph.data.hasValues()) {
+					return audiograph.data.values.reduce(function(a, b) {
+					    return Math.max(a, b);
+					});				
+				} else {
+					return 0
+				}
+			},
+			minValue: function () {
+				if (audiograph.data.hasValues()) {
+					return audiograph.data.values.reduce(function(a, b) {
+					    return Math.min(a, b);
+					});				
+				} else {
+					return 0
+				}
+			},
+			hasValues: function () {
+				return audiograph.data.values.length > 0
+			},
+			stop: function () {
+				audiograph.dsp.allNotesOff()
+			},
 			play: function () {
 				var current = 0
 				var timeout = null
@@ -73,14 +117,14 @@ audiograph.setup = function() {
 					if (audiograph.debug) {
 						console.log("Delaying next value")
 					}
-					audiograph.dsp.allNotesOff()
+					audiograph.data.stop()
 					timeout = setTimeout(next, audiograph.settings.player.durations.delayBetweenValues)
 				}
 				var next = function () {
 					if (audiograph.debug) {
 						console.log("Playing next value")
 					}
-					audiograph.dsp.allNotesOff()
+					audiograph.data.stop()
 					current++
 					value()
 				}
@@ -126,7 +170,10 @@ audiograph.setup = function() {
 				audiograph.ui.checkboxScaleTypeAbsolute = document.createElement("input")
 				audiograph.ui.checkboxScaleTypeAbsolute.id = "scale-type-absolute"
 				audiograph.ui.checkboxScaleTypeAbsolute.type = "checkbox"
-				audiograph.ui.checkboxScaleTypeAbsolute.checked = true
+				audiograph.ui.checkboxScaleTypeAbsolute.checked = audiograph.settings.scale.y.isRelative
+				audiograph.ui.checkboxScaleTypeAbsolute.addEventListener("change", function () {
+
+				})
 				
 				var checkboxLabel = document.createElement("label")
 				checkboxLabel.setAttribute('for', audiograph.ui.checkboxScaleTypeAbsolute.id)
@@ -140,9 +187,9 @@ audiograph.setup = function() {
 				element.appendChild(createButton("Set audiograph mode to discrete", audiograph.activateDiscreteMode))
 				element.appendChild(createButton("Set audiograph mode to continuous", audiograph.activateContinuousMode))
 				element.appendChild(createButton("Play audiograph", audiograph.data.play))
+				element.appendChild(createButton("Stop audiograph", audiograph.data.stop))
 			}
 		}
-
 
 		audiograph.initialized = true
 	})
