@@ -18,3 +18,4 @@ add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-e
 
 * The server must also use HTTPS to serve scripts, otherwise the Google Script sandbox will not allow using them.
 
+**CURRENT: alpha-1.0.0**
