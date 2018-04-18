@@ -9,21 +9,21 @@ audiograph.debug = true
 audiograph.setup = function() {
 	return import('./instrument.js')
 	.then(faust => {
-		audiograph.isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
-		audiograph.audio_context = (audiograph.isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
-		audiograph.dsp = null
+		var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
+		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
+		var instrument = null
 
 		//TODO: create lexically scoped vars for private stuff and add to audiograph only public stuff
 
 		audiograph.start = function () {
-			faust.default.createinstrument_poly(audiograph.audio_context, 1024, 6, 
+			faust.default.createinstrument_poly(audio_context, 1024, 6, 
 				function (node) {
-					audiograph.dsp = node
+					instrument = node
 					if (audiograph.debug) {
 						console.log("Faust DSP params:")
-			            console.log(audiograph.dsp.getParams())
+			            console.log(instrument.getParams())
 					}
-		            audiograph.dsp.connect(audiograph.audio_context.destination)
+		            instrument.connect(audio_context.destination)
 				})
 		}
 
@@ -80,7 +80,7 @@ audiograph.setup = function() {
 				if (audiograph.player.timeout) {
 					clearTimeout(audiograph.player.timeout)
 				}
-				audiograph.dsp.allNotesOff()
+				instrument.allNotesOff()
 			},
 			start: function () {
 				var current = 0
@@ -113,7 +113,7 @@ audiograph.setup = function() {
 						if (audiograph.debug) {
 							console.log('pitch for current value in series: ' + pitch)
 						}
-						audiograph.dsp.keyOn(1, pitch, audiograph.player.velocity)
+						instrument.keyOn(1, pitch, audiograph.player.velocity)
 						audiograph.player.timeout = setTimeout(callback, audiograph.player.durations.value)
 					}
 				}
