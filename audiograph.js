@@ -8,7 +8,7 @@ audiograph.debug = true
 audiograph.sonification = null
 
 audiograph.setup = function() {
-	return import('./instrument.js')
+	return _import('./instrument.js')
 	.then(faust => {
 		var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
 		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
