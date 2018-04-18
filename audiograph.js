@@ -5,6 +5,7 @@ var audiograph = audiograph || {}
 audiograph.initialized = false
 
 audiograph.debug = true
+audiograph.sonification = null
 
 audiograph.setup = function() {
 	return import('./instrument.js')
@@ -13,7 +14,15 @@ audiograph.setup = function() {
 		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
 		var instrument = null
 
+		var sonificationCallback = (audiograph.sonification) ? 
+			function () {
+				audiograph.sonification()
+				player.start()
+			} 
+			: player.start
+
 		var sonification = {
+			callback: sonificationCallback,
 			scale: {
 				isAbsolute: true,
 				absolute: {
@@ -235,7 +244,7 @@ audiograph.setup = function() {
 			]})
 
 			var controlContainer = createContainer({className: "control", elements: [
-				createButton("Play audiograph", player.start),
+				createButton("Play audiograph", audiograph.sonification.callback),
 				createButton("Stop audiograph", player.stop),
 			]})
 
@@ -260,7 +269,7 @@ audiograph.setup = function() {
 			data.values = values
 		}
 
-		audiograph.play = player.start
+		audiograph.play = sonification.callback
 		audiograph.stop = player.stop
 
 		audiograph.initialized = true

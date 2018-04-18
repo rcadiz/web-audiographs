@@ -35,11 +35,13 @@
 	<div id="audiograph">
 	</div>
 <script type="text/javascript">
+	audiograph.sonification = function () {
+		console.log("sonificationCallback")
+		audiograph.setValues([50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
+	}
 	audiograph.setup()
 	.then(() => {
 		if (audiograph.initialized) {
-			audiograph.setValues([50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
-
 			audiograph.ui("audiograph")
 
 			keyBindings.add(['KeyP'], audiograph.play)
