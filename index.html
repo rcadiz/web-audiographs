@@ -18,7 +18,7 @@
 		if (audiograph.initialized) {
 			audiograph.data.values = [50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75]
 
-			audiograph.ui.render("audiograph-settings")
+			audiograph.ui("audiograph-settings")
 
 			window.addEventListener("load", audiograph.start)
 		} else {
