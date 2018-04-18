@@ -16,7 +16,13 @@ audiograph.setup = function() {
 
 		var sonificationCallback = (audiograph.sonification) ? 
 			function () {
+				if (audiograph.debug) {
+					console.log("Calling sonification callback");
+				}
 				audiograph.sonification()
+				if (audiograph.debug) {
+					console.log("Calling player start");
+				}
 				player.start()
 			} 
 			: player.start
@@ -64,20 +70,32 @@ audiograph.setup = function() {
 			},
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
+				if (audiograph.debug) {
+					console.log("Player mode is now DISCRETE");
+				}
 				player.durations.value = 200
 				player.durations.delayBetweenValues = 400
 			},
 			setContinuousMode: function () {
+				if (audiograph.debug) {
+					console.log("Player mode is now CONTINUOUS");
+				}
 				player.durations.value = 70
 				player.durations.delayBetweenValues = 0
 			},			
 			stop: function () {
+				if (audiograph.debug) {
+					console.log("Player stopping");
+				}
 				if (player.timeout) {
 					clearTimeout(player.timeout)
 				}
 				instrument.allNotesOff()
 			},
 			start: function () {
+				if (audiograph.debug) {
+					console.log("Player starting");
+				}
 				var current = 0
 				var values = data.values
 				var delay = function () {
@@ -266,6 +284,10 @@ audiograph.setup = function() {
 		}
 
 		audiograph.setValues = function (values) {
+			if (audiograph.debug) {
+				console.log("Setting values to:")
+				console.log(values)
+			}
 			data.values = values
 		}
 
