@@ -44,9 +44,21 @@
 	<div id="audiograph">
 	</div>
 	<script type="text/javascript">
+	getValues = function () {
+		var textArea = document.getElementById("series")
+		var cleanString = textArea.value.replace(/\s/g,' ')
+		var values = cleanString.split(' ').reduce(function (accumulator, value) {
+			var floatValue = parseFloat(value)
+			if (!isNaN(floatValue)) {
+				accumulator.push(floatValue)
+			}
+			return accumulator
+		}, [])
+		return values
+	}
 	audiograph.sonification = function (playCallback) {
 		console.log("sonificationCallback")
-		audiograph.setValues([50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
+		audiograph.setValues(getValues())
 		playCallback()
 	}
 	audiograph.setup()
