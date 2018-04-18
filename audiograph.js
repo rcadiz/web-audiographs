@@ -19,11 +19,7 @@ audiograph.setup = function() {
 				if (audiograph.debug) {
 					console.log("Calling sonification callback");
 				}
-				audiograph.sonification()
-				if (audiograph.debug) {
-					console.log("Calling player start");
-				}
-				player.start()
+				audiograph.sonification(player.start)
 			} 
 			: player.start
 

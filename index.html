@@ -35,9 +35,10 @@
 	<div id="audiograph">
 	</div>
 <script type="text/javascript">
-	audiograph.sonification = function () {
+	audiograph.sonification = function (playCallback) {
 		console.log("sonificationCallback")
 		audiograph.setValues([50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
+		playCallback()
 	}
 	audiograph.setup()
 	.then(() => {
