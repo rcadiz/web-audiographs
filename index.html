@@ -21,6 +21,9 @@
 
 			audiograph.ui("audiograph-settings")
 
+			keyBindings.add(['KeyP'], audiograph.play)
+			keyBindings.add(['KeyS'], audiograph.stop)
+
 			window.addEventListener("load", audiograph.start)
 		} else {
 			alert('Audiograph is not initialized')
