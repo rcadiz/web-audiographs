@@ -1,6 +1,8 @@
 <html>
-<script type="text/javascript" src="audiograph.js"></script>
-
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="audiograph.js"></script>
+</head>
 <body>
 	<h1>Audiographs</h1>
 	<div class="explanation">
@@ -14,7 +16,7 @@
 	audiograph.setup()
 	.then(() => {
 		if (audiograph.initialized) {
-			audiograph.data.values = [50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75]
+			audiograph.data.values = [50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75]
 
 			audiograph.ui.render("audiograph-settings")
 
