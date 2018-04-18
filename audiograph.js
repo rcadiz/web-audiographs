@@ -267,7 +267,7 @@ audiograph.setup = function() {
 			element.appendChild(checkboxContainer)
 		}
 
-		audiograph.start = function () {
+		audiograph.start = function (playOnStart) {
 			faust.default.createinstrument_poly(audio_context, 1024, 6, 
 				function (node) {
 					instrument = node
@@ -276,6 +276,9 @@ audiograph.setup = function() {
 			            console.log(instrument.getParams())
 					}
 		            instrument.connect(audio_context.destination)
+		            if (playOnStart) {
+		            	sonification.callback()
+		            }
 				})
 		}
 
