@@ -203,16 +203,16 @@ audiograph.setup = function() {
 			var scaleMinLabel = createLabel("Minimum value of absolute scale:", inputAbsoluteMin)
 			var scaleMaxLabel = createLabel("Maximum value of absolute scale:", inputAbsoluteMax)
 
-			var updateScaleContainerVisibility = function () {
-				scaleContainer.style.display = (sonification.scale.isAbsolute ? "block" : "none")
-			}
-
-			var scaleContainer = createContainer({className: "scale", elements: [
+			var scaleContainer = createContainer({className: "scale-absolute", elements: [
 				scaleMinLabel, 
 				inputAbsoluteMin,
 				scaleMaxLabel,
 				inputAbsoluteMax,
 				]})
+
+			var updateScaleContainerVisibility = function () {
+				scaleContainer.style.display = (sonification.scale.isAbsolute ? "block" : "none")
+			}
 
 			updateScaleContainerVisibility()
 
@@ -223,16 +223,25 @@ audiograph.setup = function() {
 
 			var checkboxLabel = createLabel("Use absolute scale", checkboxIsAbsolute)
 
-			var checkboxContainer = document.createElement("div")
-			checkboxContainer.appendChild(checkboxIsAbsolute)
-			checkboxContainer.appendChild(checkboxLabel)
-			checkboxContainer.appendChild(scaleContainer)
+			var checkboxContainer = createContainer({className: "scale", elements: [
+				checkboxIsAbsolute,
+				checkboxLabel,
+				scaleContainer,
+			]})
 
+			var modeContainer = createContainer({className: "mode", elements: [
+				createButton("Set audiograph mode to discrete", player.setDiscreteMode),
+				createButton("Set audiograph mode to continuous", player.setContinuousMode),
+			]})
+
+			var controlContainer = createContainer({className: "control", elements: [
+				createButton("Play audiograph", player.start),
+				createButton("Stop audiograph", player.stop),
+			]})
+
+			element.appendChild(controlContainer)
+			element.appendChild(modeContainer)
 			element.appendChild(checkboxContainer)
-			element.appendChild(createButton("Set audiograph mode to discrete", player.setDiscreteMode))
-			element.appendChild(createButton("Set audiograph mode to continuous", player.setContinuousMode))
-			element.appendChild(createButton("Play audiograph", player.start))
-			element.appendChild(createButton("Stop audiograph", player.stop))
 		}
 
 		audiograph.start = function () {
@@ -249,7 +258,6 @@ audiograph.setup = function() {
 
 		audiograph.setValues = function (values) {
 			data.values = values
-			//TODO: add side-effects here
 		}
 
 		audiograph.play = player.start

@@ -3,6 +3,27 @@
 	<meta charset="UTF-8">
 	<script type="text/javascript" src="audiograph.js"></script>
 	<script type="text/javascript" src="keyhandler.js"></script>
+	<style type="text/css">
+	#audiograph .scale .scale-absolute input,
+	#audiograph .scale .scale-absolute label,
+	#audiograph .control button,
+	#audiograph .mode button
+	{
+		display: block;
+	}
+	#audiograph .control,
+	#audiograph .mode,	
+	#audiograph .scale
+	{
+		margin-bottom: 20px;
+		padding:10px;
+		background-color: #efefef;
+		border-radius: 10px;
+	}
+	#audiograph .scale .scale-absolute label {
+		margin-top: 10px;
+	}
+	</style>
 </head>
 <body>
 	<h1>Audiographs</h1>
@@ -11,7 +32,7 @@
 		<p>Explanation paragraph 2</p>
 		<p>Explanation paragraph 3</p>
 	</div>
-	<div class="settings" id="audiograph-settings">
+	<div id="audiograph">
 	</div>
 <script type="text/javascript">
 	audiograph.setup()
@@ -19,7 +40,7 @@
 		if (audiograph.initialized) {
 			audiograph.setValues([50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
 
-			audiograph.ui("audiograph-settings")
+			audiograph.ui("audiograph")
 
 			keyBindings.add(['KeyP'], audiograph.play)
 			keyBindings.add(['KeyS'], audiograph.stop)
