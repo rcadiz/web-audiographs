@@ -13,21 +13,7 @@ audiograph.setup = function() {
 		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
 		var instrument = null
 
-		//TODO: create lexically scoped vars for private stuff and add to audiograph only public stuff
-
-		audiograph.start = function () {
-			faust.default.createinstrument_poly(audio_context, 1024, 6, 
-				function (node) {
-					instrument = node
-					if (audiograph.debug) {
-						console.log("Faust DSP params:")
-			            console.log(instrument.getParams())
-					}
-		            instrument.connect(audio_context.destination)
-				})
-		}
-
-		audiograph.sonification = {
+		var sonification = {
 			scale: {
 				isAbsolute: true,
 				absolute: {
@@ -39,29 +25,29 @@ audiograph.setup = function() {
 					max: 100, // 0:127
 				},				
 				min: function () {
-					if (audiograph.sonification.scale.isAbsolute) {
-						return audiograph.sonification.scale.absolute.min
+					if (sonification.scale.isAbsolute) {
+						return sonification.scale.absolute.min
 					} else {
-						return audiograph.data.minValue()
+						return data.minValue()
 					}
 				},
 				max: function () {
-					if (audiograph.sonification.scale.isAbsolute) {
-						return audiograph.sonification.scale.absolute.max
+					if (sonification.scale.isAbsolute) {
+						return sonification.scale.absolute.max
 					} else {
-						return audiograph.data.maxValue()
+						return data.maxValue()
 					}
 				},
 				valueToPitch: function (value) {
-					var scaleRange = audiograph.sonification.scale.max() - audiograph.sonification.scale.min()
-					var scaledValue = (value - audiograph.sonification.scale.min()) / scaleRange
-					var pitchRange = audiograph.sonification.scale.pitch.max - audiograph.sonification.scale.pitch.min
-					return (scaledValue * pitchRange) + audiograph.sonification.scale.pitch.min
+					var scaleRange = sonification.scale.max() - sonification.scale.min()
+					var scaledValue = (value - sonification.scale.min()) / scaleRange
+					var pitchRange = sonification.scale.pitch.max - sonification.scale.pitch.min
+					return (scaledValue * pitchRange) + sonification.scale.pitch.min
 				},
 			},
 		}
 
-		audiograph.player = {
+		var player = {
 			timeout: null,
 			durations: { //all in milliseconds
 				value: 200,
@@ -69,39 +55,39 @@ audiograph.setup = function() {
 			},
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
-				audiograph.player.durations.value = 200
-				audiograph.player.durations.delayBetweenValues = 400
+				player.durations.value = 200
+				player.durations.delayBetweenValues = 400
 			},
 			setContinuousMode: function () {
-				audiograph.player.durations.value = 70
-				audiograph.player.durations.delayBetweenValues = 0
+				player.durations.value = 70
+				player.durations.delayBetweenValues = 0
 			},			
 			stop: function () {
-				if (audiograph.player.timeout) {
-					clearTimeout(audiograph.player.timeout)
+				if (player.timeout) {
+					clearTimeout(player.timeout)
 				}
 				instrument.allNotesOff()
 			},
 			start: function () {
 				var current = 0
-				var values = audiograph.data.values
+				var values = data.values
 				var delay = function () {
 					if (audiograph.debug) {
 						console.log("Delaying next value")
 					}
-					audiograph.player.stop()
-					audiograph.player.timeout = setTimeout(next, audiograph.player.durations.delayBetweenValues)
+					player.stop()
+					player.timeout = setTimeout(next, player.durations.delayBetweenValues)
 				}
 				var next = function () {
 					if (audiograph.debug) {
 						console.log("Playing next value")
 					}
-					audiograph.player.stop()
+					player.stop()
 					current++
 					value()
 				}
 				var value = function () {
-					var callback = (audiograph.player.durations.delayBetweenValues > 0) ? delay : next
+					var callback = (player.durations.delayBetweenValues > 0) ? delay : next
 					if (audiograph.debug) {
 						console.log('current index in series: ' + current)
 					}
@@ -109,12 +95,12 @@ audiograph.setup = function() {
 						if (audiograph.debug) {
 							console.log('current value in series: ' + values[current])
 						}
-						var pitch = audiograph.sonification.scale.valueToPitch(values[current])
+						var pitch = sonification.scale.valueToPitch(values[current])
 						if (audiograph.debug) {
 							console.log('pitch for current value in series: ' + pitch)
 						}
-						instrument.keyOn(1, pitch, audiograph.player.velocity)
-						audiograph.player.timeout = setTimeout(callback, audiograph.player.durations.value)
+						instrument.keyOn(1, pitch, player.velocity)
+						player.timeout = setTimeout(callback, player.durations.value)
 					}
 				}
 				if (values.length > 0) {
@@ -123,18 +109,14 @@ audiograph.setup = function() {
 			},
 		}
 
-		audiograph.data = {
+		var data = {
 			values: [],
-			setValues: function (values) {
-				audiograph.data.values = values
-				//TODO: add side-effects here
-			},
 			hasValues: function () {
-				return audiograph.data.values.length > 0
+				return data.values.length > 0
 			},
 			maxValue: function () {
-				if (audiograph.data.hasValues()) {
-					return audiograph.data.values.reduce(function(a, b) {
+				if (data.hasValues()) {
+					return data.values.reduce(function(a, b) {
 					    return Math.max(a, b);
 					});				
 				} else {
@@ -142,8 +124,8 @@ audiograph.setup = function() {
 				}
 			},
 			minValue: function () {
-				if (audiograph.data.hasValues()) {
-					return audiograph.data.values.reduce(function(a, b) {
+				if (data.hasValues()) {
+					return data.values.reduce(function(a, b) {
 					    return Math.min(a, b);
 					});				
 				} else {
@@ -210,19 +192,19 @@ audiograph.setup = function() {
 				return container
 			}
 
-			var inputAbsoluteMin = createInput("scale-min", audiograph.sonification.scale.absolute.min, "number", function () {
-				audiograph.sonification.scale.absolute.min = inputAbsoluteMin.value
+			var inputAbsoluteMin = createInput("scale-min", sonification.scale.absolute.min, "number", function () {
+				sonification.scale.absolute.min = inputAbsoluteMin.value
 			})
 
-			var inputAbsoluteMax = createInput("scale-max", audiograph.sonification.scale.absolute.max, "number", function () {
-				audiograph.sonification.scale.absolute.max = inputAbsoluteMax.value
+			var inputAbsoluteMax = createInput("scale-max", sonification.scale.absolute.max, "number", function () {
+				sonification.scale.absolute.max = inputAbsoluteMax.value
 			})
 
 			var scaleMinLabel = createLabel("Minimum value of absolute scale:", inputAbsoluteMin)
 			var scaleMaxLabel = createLabel("Maximum value of absolute scale:", inputAbsoluteMax)
 
 			var updateScaleContainerVisibility = function () {
-				scaleContainer.style.display = (audiograph.sonification.scale.isAbsolute ? "block" : "none")
+				scaleContainer.style.display = (sonification.scale.isAbsolute ? "block" : "none")
 			}
 
 			var scaleContainer = createContainer({className: "scale", elements: [
@@ -234,8 +216,8 @@ audiograph.setup = function() {
 
 			updateScaleContainerVisibility()
 
-			var checkboxIsAbsolute = createCheckbox("scale-type-absolute", audiograph.sonification.scale.isAbsolute, function () {
-				audiograph.sonification.scale.isAbsolute = checkboxIsAbsolute.checked
+			var checkboxIsAbsolute = createCheckbox("scale-type-absolute", sonification.scale.isAbsolute, function () {
+				sonification.scale.isAbsolute = checkboxIsAbsolute.checked
 				updateScaleContainerVisibility()
 			})
 
@@ -247,11 +229,31 @@ audiograph.setup = function() {
 			checkboxContainer.appendChild(scaleContainer)
 
 			element.appendChild(checkboxContainer)
-			element.appendChild(createButton("Set audiograph mode to discrete", audiograph.player.setDiscreteMode))
-			element.appendChild(createButton("Set audiograph mode to continuous", audiograph.player.setContinuousMode))
-			element.appendChild(createButton("Play audiograph", audiograph.player.start))
-			element.appendChild(createButton("Stop audiograph", audiograph.player.stop))
+			element.appendChild(createButton("Set audiograph mode to discrete", player.setDiscreteMode))
+			element.appendChild(createButton("Set audiograph mode to continuous", player.setContinuousMode))
+			element.appendChild(createButton("Play audiograph", player.start))
+			element.appendChild(createButton("Stop audiograph", player.stop))
 		}
+
+		audiograph.start = function () {
+			faust.default.createinstrument_poly(audio_context, 1024, 6, 
+				function (node) {
+					instrument = node
+					if (audiograph.debug) {
+						console.log("Faust DSP params:")
+			            console.log(instrument.getParams())
+					}
+		            instrument.connect(audio_context.destination)
+				})
+		}
+
+		audiograph.setValues = function (values) {
+			data.values = values
+			//TODO: add side-effects here
+		}
+
+		audiograph.play = player.start
+		audiograph.stop = player.stop
 
 		audiograph.initialized = true
 	})
