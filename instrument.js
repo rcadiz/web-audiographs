@@ -25,6 +25,8 @@ function getJSONinstrument() {
 
 'use strict';
 
+var baseUrl = 'https://lab.adapar.net/cita/audiographs/google/'
+
 var faust = faust || {};
 
 faust.error_msg = null;
@@ -866,15 +868,15 @@ faust.createinstrument_poly = function(context, buffer_size, polyphony, callback
         }
     };
     
-    fetch('mixer32.wasm')
+    fetch(baseUrl + 'mixer32.wasm')
     .then(mix_file => mix_file.arrayBuffer())
     .then(mix_bytes => WebAssembly.instantiate(mix_bytes, mixObject))
     .then(mix_module =>
-        fetch('instrument.wasm')
+        fetch(baseUrl + 'instrument.wasm')
         .then(dsp_file => dsp_file.arrayBuffer())
         .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
         .then(dsp_module =>
-            fetch('instrument_effect.wasm')
+            fetch(baseUrl + 'instrument_effect.wasm')
             .then(effect_file => effect_file.arrayBuffer())
             .then(effect_bytes => WebAssembly.instantiate(effect_bytes, importObject))
             .then(effect_module => callback(faust.instrument_poly(mix_module.instance,
