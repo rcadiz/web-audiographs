@@ -26,7 +26,7 @@ audiograph.setup = function() {
 		var sonification = {
 			callback: sonificationCallback,
 			scale: {
-				isAbsolute: true,
+				isAbsolute: false,
 				absolute: {
 					min: 0,
 					max: 100,
@@ -61,8 +61,8 @@ audiograph.setup = function() {
 		var player = {
 			timeout: null,
 			durations: { //all in milliseconds
-				value: 200,
-				delayBetweenValues: 400,
+				value: 70,
+				delayBetweenValues: 0,
 			},
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
@@ -276,6 +276,8 @@ audiograph.setup = function() {
 			            console.log(instrument.getParams())
 					}
 		            instrument.connect(audio_context.destination)
+		            console.log("playOnStart is:")
+		            console.log(playOnStart)
 		            if (playOnStart) {
 		            	sonification.callback()
 		            }

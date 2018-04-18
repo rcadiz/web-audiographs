@@ -23,6 +23,11 @@
 	#audiograph .scale .scale-absolute label {
 		margin-top: 10px;
 	}
+	.explanation textarea {
+		display: block;
+		width: 100%;
+		height:100px;
+	}
 	</style>
 </head>
 <body>
@@ -31,10 +36,14 @@
 		<p>Explanation paragraph 1</p>
 		<p>Explanation paragraph 2</p>
 		<p>Explanation paragraph 3</p>
+		<p>
+			<label for="series">Series data for testing</label>
+			<textarea id="series">50 220 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75</textarea>
+		</p>
 	</div>
 	<div id="audiograph">
 	</div>
-<script type="text/javascript">
+	<script type="text/javascript">
 	audiograph.sonification = function (playCallback) {
 		console.log("sonificationCallback")
 		audiograph.setValues([50, 220, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75, 50, 25, 10, 0, 25, 50, 90, 75])
@@ -48,7 +57,9 @@
 			keyBindings.add(['KeyP'], audiograph.play)
 			keyBindings.add(['KeyS'], audiograph.stop)
 
-			window.addEventListener("load", audiograph.start)
+			window.addEventListener("load", function (event) {
+				audiograph.start(false)
+			})
 		} else {
 			alert('Audiograph is not initialized')
 		}
@@ -56,6 +67,6 @@
 	.catch(error => {
 		console.error(error)
 	})
-</script>
+	</script>
 </body>
 </html>
