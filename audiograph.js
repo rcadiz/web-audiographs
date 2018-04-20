@@ -63,6 +63,7 @@ audiograph.setup = function() {
 			durations: { //all in milliseconds
 				value: 70,
 				delayBetweenValues: 0,
+				total: 3000,
 			},
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
@@ -191,8 +192,8 @@ audiograph.setup = function() {
 			var createInput = function (id, value, type, handler) {
 				var input = document.createElement("input")
 				input.id = id
-				input.value = value
 				input.type = type
+				input.value = value
 				input.addEventListener("change", handler)
 				return input
 			}
@@ -252,9 +253,51 @@ audiograph.setup = function() {
 				scaleContainer,
 			]})
 
+			
+			var inputDuration = createInput("duration", player.durations.total, "number", function () {
+				player.durations.total = inputDuration.value
+			})
+
+			var durationLabel = createLabel("Audiograph duration (in milliseconds)", inputDuration)
+
+			var inputMinFreq = createInput("freq-max", 440, "range", function () {
+				//TODO
+				/*
+				if (inputMinFreq.value > inputMaxFreq.value) {
+					inputMinFreq.value = inputMaxFreq.value - 1
+				}
+				sonification.scale.pitch.min = inputMinFreq.value
+				*/
+			})
+			inputMinFreq.setAttribute("min", 100)
+			inputMinFreq.setAttribute("max", 1000)
+			inputMinFreq.setAttribute("step", 1)
+
+			var inputMaxFreq = createInput("freq-max", 880, "range", function () {
+				//TODO
+				/*
+				if (inputMaxFreq.value < inputMinFreq.value) {
+					inputMaxFreq.value = inputMinFreq.value + 1
+				}
+				sonification.scale.pitch.max = inputMmaxFreq.value
+				*/
+			})
+			inputMaxFreq.setAttribute("min", 100)
+			inputMaxFreq.setAttribute("max", 1000)
+			inputMaxFreq.setAttribute("step", 1)
+
+			var minFreqLabel = createLabel("Minimum frequency (from 100Hz to 1000Hz)", inputMinFreq)
+			var maxFreqLabel = createLabel("Maximum frequency (from 100Hz to 1000Hz)", inputMinFreq)
+
 			var modeContainer = createContainer({className: "mode", elements: [
 				createButton("Set audiograph mode to discrete", player.setDiscreteMode),
 				createButton("Set audiograph mode to continuous", player.setContinuousMode),
+				durationLabel,
+				inputDuration,
+				minFreqLabel,
+				inputMinFreq,
+				maxFreqLabel,
+				inputMaxFreq,
 			]})
 
 			var controlContainer = createContainer({className: "control", elements: [
