@@ -1,0 +1,86 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="audiograph.js"></script>
+	<script type="text/javascript" src="keyhandler.js"></script>
+	<style type="text/css">
+	#audiograph .scale .scale-absolute input,
+	#audiograph .scale .scale-absolute label,
+	#audiograph .control button,
+	#audiograph .mode label,
+	#audiograph .mode button
+	{
+		display: block;
+	}
+	#audiograph .control,
+	#audiograph .mode,	
+	#audiograph .scale
+	{
+		margin-bottom: 20px;
+		padding:10px;
+		background-color: #efefef;
+		border-radius: 10px;
+	}
+	#audiograph .mode label,
+	#audiograph .scale .scale-absolute label {
+		margin-top: 10px;
+	}
+	.explanation textarea {
+		display: block;
+		width: 100%;
+		height:100px;
+	}
+	</style>
+</head>
+<body>
+	<h1>Audiographs</h1>
+	<div class="explanation">
+		<p>Explanation paragraph 1</p>
+		<p>Explanation paragraph 2</p>
+		<p>Explanation paragraph 3</p>
+		<p>
+			<label for="series">Series data for testing</label>
+			<textarea id="series">50 220 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75</textarea>
+		</p>
+	</div>
+	<div id="audiograph">
+	</div>
+	<script type="text/javascript">
+	getValues = function () {
+		var textArea = document.getElementById("series")
+		var cleanString = textArea.value.replace(/\s/g,' ')
+		var values = cleanString.split(' ').reduce(function (accumulator, value) {
+			var floatValue = parseFloat(value)
+			if (!isNaN(floatValue)) {
+				accumulator.push(floatValue)
+			}
+			return accumulator
+		}, [])
+		return values
+	}
+	audiograph.sonification = function (playCallback) {
+		console.log("sonificationCallback")
+		audiograph.setValues(getValues())
+		playCallback()
+	}
+	audiograph.setup()
+	.then(() => {
+		if (audiograph.initialized) {
+			audiograph.ui("audiograph")
+
+			keyBindings.add(['KeyP'], audiograph.play)
+			keyBindings.add(['KeyS'], audiograph.stop)
+
+			window.addEventListener("load", function (event) {
+				audiograph.start(false)
+			})
+		} else {
+			alert('Audiograph is not initialized')
+		}
+	})
+	.catch(error => {
+		console.error(error)
+	})
+	</script>
+</body>
+</html>
