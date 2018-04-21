@@ -38,7 +38,7 @@ audiograph.setup = function() {
 					max: 100,
 				},
 				pitch: {
-					min: 40, // 0:127
+					min: 27, // 0:127
 					max: 100, // 0:127
 				},
 				min: function () {
@@ -66,25 +66,32 @@ audiograph.setup = function() {
 
 		var player = {
 			timeout: null,
+			isDiscrete: false,
 			durations: { //all in milliseconds
-				value: 70,
-				delayBetweenValues: 0,
+				value: function () {
+					if (data.hasValues()) {
+						var steps = data.values.length
+						return Math.ceil(player.durations.total / steps)
+					}
+					return 0
+				},
+				delayBetweenValues: function () {
+					if (player.isDiscrete && data.hasValues()) {
+						//TODO: Handle this gracefully
+						return 400
+					}
+					return 0
+				},
 				total: 3000,
 			},
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
-				if (audiograph.debug) {
-					console.log("Player mode is now DISCRETE");
-				}
-				player.durations.value = 200
-				player.durations.delayBetweenValues = 400
+				player.isDiscrete = true
+				console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
 			},
 			setContinuousMode: function () {
-				if (audiograph.debug) {
-					console.log("Player mode is now CONTINUOUS");
-				}
-				player.durations.value = 70
-				player.durations.delayBetweenValues = 0
+				player.isDiscrete = false
+				console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
 			},			
 			stop: function () {
 				if (audiograph.debug) {
@@ -106,7 +113,7 @@ audiograph.setup = function() {
 						console.log("Delaying next value")
 					}
 					player.stop()
-					player.timeout = setTimeout(next, player.durations.delayBetweenValues)
+					player.timeout = setTimeout(next, player.durations.delayBetweenValues())
 				}
 				var next = function () {
 					if (audiograph.debug) {
@@ -117,7 +124,7 @@ audiograph.setup = function() {
 					value()
 				}
 				var value = function () {
-					var callback = (player.durations.delayBetweenValues > 0) ? delay : next
+					var callback = (player.durations.delayBetweenValues() > 0) ? delay : next
 					if (audiograph.debug) {
 						console.log('current index in series: ' + current)
 					}
@@ -130,7 +137,11 @@ audiograph.setup = function() {
 							console.log('pitch for current value in series: ' + pitch)
 						}
 						instrument.keyOn(1, pitch, player.velocity)
-						player.timeout = setTimeout(callback, player.durations.value)
+						if (audiograph.debug) {
+							console.log('Value duration: ' + player.durations.value())
+							console.log('Delay duration: ' + player.durations.delayBetweenValues())
+						}
+						player.timeout = setTimeout(callback, player.durations.value())
 					}
 				}
 				if (values.length > 0) {
@@ -262,7 +273,10 @@ audiograph.setup = function() {
 			
 			var inputDuration = createInput("duration", player.durations.total, "number", function () {
 				player.durations.total = inputDuration.value
+				console.log(player.durations.value())
+				console.log(player.durations.delayBetweenValues())
 			})
+				console.log(player.durations.value())
 
 			var durationLabel = createLabel("Audiograph duration (in milliseconds)", inputDuration)
 
