@@ -1,6 +1,6 @@
 # Web Audiographs
-## Rodrigo F. Cadiz and Andres Aparicio
-## Pontificia Universidad Catolica de Chile
+### Rodrigo F. Cadiz and Andres Aparicio
+### Pontificia Universidad Catolica de Chile
 
 ## Notes
 
