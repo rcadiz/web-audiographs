@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+	<style type="text/css">
+	#audiograph .scale .scale-absolute input,
+	#audiograph .scale .scale-absolute label,
+	#audiograph .control button,
+	#audiograph .mode button
+	{
+		display: block;
+		margin-left:10px;
+		margin-bottom: 10px;
+	}
+	#audiograph .scale input[type=checkbox] {
+		margin-left:10px;
+    }
+	#audiograph .control,
+	#audiograph .mode,	
+	#audiograph .scale
+	{
+        margin-top:20px;
+		margin-bottom: 20px;
+	}
+    </style>
+  </head>
+  <body>
+	<div id="audiograph">
+	</div>
+	<script type="text/javascript" src="https://lab.adapar.net/cita/audiographs/google/audiograph.js"></script>
+	<script type="text/javascript" src="https://lab.adapar.net/cita/audiographs/google/keyhandler.js"></script>
+    <script type="text/javascript">
+    window.addEventListener("load", function () {
+      window.focus();
+    })
+    audiograph.sonification = function (playCallback) {
+      google.script.run
+        .withSuccessHandler(
+           function(data, element) {
+             audiograph.setValues(data)
+             playCallback()
+           })
+        .withFailureHandler(
+           function(msg, element) {
+             console.error("ERROR: " + msg)
+           })
+        .withUserObject(this)
+        .getData();       
+    }
+	audiograph.setup()
+	.then(() => {
+		if (audiograph.initialized) {
+			keyBindings.add(['KeyP'], audiograph.play)
+			keyBindings.add(['KeyS'], audiograph.stop)
+            
+            audiograph.ui("audiograph")
+            audiograph.start(true)
+        } else {
+			alert('Audiograph is not initialized')
+		}
+	})
+	.catch(error => {
+		console.error(error)
+	})
+    </script>
+  </body>
+</html>
