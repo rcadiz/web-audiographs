@@ -320,6 +320,7 @@ audiograph.setup = function() {
 			var controlContainer = createContainer({className: "control", elements: [
 				createButton("Play audiograph", sonification.callback),
 				createButton("Stop audiograph", player.stop),
+				createButton("Timbre", function () {}),
 			]})
 
 			element.appendChild(controlContainer)
