@@ -17,7 +17,7 @@ audiograph.setup = function() {
 		var sonificationCallback = (audiograph.sonification) ? 
 			function () {
 				if (audiograph.debug) {
-					console.log("Calling sonification callback");
+					console.log("Calling sonification callback")
 				}
 				audiograph.sonification(player.start)
 			} 
@@ -29,7 +29,7 @@ audiograph.setup = function() {
 				return Math.ceil(((12.0 * Math.log(freq/440.0)) / Math.log(2.0)) + 69.0)
 			},
 			pitchToFreq: function (pitch) {
-		        return 440.0 * Math.pow(2.0, (pitch - 69.0) / 12.0);
+		        return 440.0 * Math.pow(2.0, (pitch - 69.0) / 12.0)
 			},
 			scale: {
 				isAbsolute: false,
@@ -56,6 +56,9 @@ audiograph.setup = function() {
 					}
 				},
 				valueToPitch: function (value) {
+					if (typeof (value) === "undefined") {
+						return 0
+					}
 					var scaleRange = sonification.scale.max() - sonification.scale.min()
 					var scaledValue = (value - sonification.scale.min()) / scaleRange
 					var pitchRange = sonification.scale.pitch.max - sonification.scale.pitch.min
@@ -70,7 +73,7 @@ audiograph.setup = function() {
 			durations: { //all in milliseconds
 				value: function () {
 					if (data.hasValues()) {
-						var steps = data.values.length
+						var steps = data.maxLength()
 						return Math.ceil(player.durations.total / steps)
 					}
 					return 0
@@ -95,7 +98,7 @@ audiograph.setup = function() {
 			},			
 			stop: function () {
 				if (audiograph.debug) {
-					console.log("Player stopping");
+					console.log("Player stopping")
 				}
 				if (player.timeout) {
 					clearTimeout(player.timeout)
@@ -104,10 +107,12 @@ audiograph.setup = function() {
 			},
 			start: function () {
 				if (audiograph.debug) {
-					console.log("Player starting");
+					console.log("Player starting")
 				}
 				var current = 0
-				var values = data.values
+				var seriesLength = data.maxLength()
+				var series1 = data.getValues(0)
+				var series2 = data.getValues(1)
 				var delay = function () {
 					if (audiograph.debug) {
 						console.log("Delaying next value")
@@ -128,15 +133,19 @@ audiograph.setup = function() {
 					if (audiograph.debug) {
 						console.log('current index in series: ' + current)
 					}
-					if (current < values.length) {
+					if (current < seriesLength) {
 						if (audiograph.debug) {
-							console.log('current value in series: ' + values[current])
+							console.log('current value in series 1: ' + series1[current])
+							console.log('current value in series 2: ' + series2[current])
 						}
-						var pitch = sonification.scale.valueToPitch(values[current])
+						var pitch1 = sonification.scale.valueToPitch(series1[current])
+						var pitch2 = sonification.scale.valueToPitch(series2[current])
 						if (audiograph.debug) {
-							console.log('pitch for current value in series: ' + pitch)
+							console.log('pitch for current value in series 1: ' + pitch1)
+							console.log('pitch for current value in series 2: ' + pitch2)
 						}
-						instrument.keyOn(1, pitch, player.velocity)
+						//TODO: change for two pitches
+						instrument.keyOn(1, pitch1, player.velocity)
 						if (audiograph.debug) {
 							console.log('Value duration: ' + player.durations.value())
 							console.log('Delay duration: ' + player.durations.delayBetweenValues())
@@ -144,33 +153,96 @@ audiograph.setup = function() {
 						player.timeout = setTimeout(callback, player.durations.value())
 					}
 				}
-				if (values.length > 0) {
+				if (audiograph.debug) {
+					console.log('Series length: ' + seriesLength)
+				}
+				if (seriesLength > 0) {
+					if (audiograph.debug) {
+						console.log('Calling first values')
+					}
 					value()
 				}
 			},
 		}
 
+		function Series() {
+			this.values = []			
+		}
+
+		Series.prototype.setValues = function (values) {
+			this.values = values
+		}
+
+		Series.prototype.hasValues = function () {
+			return this.values.length > 0
+		}
+
+		Series.prototype.maxValue = function () {
+			if (this.hasValues()) {
+				return this.values.reduce(function(a, b) {
+				    return Math.max(a, b)
+				});				
+			} else {
+				return 0
+			}
+		}
+
+		Series.prototype.minValue = function () {
+			if (this.hasValues()) {
+				return this.values.reduce(function(a, b) {
+				    return Math.min(a, b)
+				});				
+			} else {
+				return 0
+			}
+		}
+
 		var data = {
-			values: [],
+			series: [],
+			setup: function (totalSeries){
+				for (var index = 0; index < totalSeries; index++) {
+					data.series[index] = new Series()
+				}
+			},
+			setValues: function (values, forSeries) {
+				if (forSeries < data.series.length) {
+					data.series[forSeries].setValues(values)
+				}
+			},
+			getValues: function (forSeries) {
+				if (forSeries < data.series.length) {
+					return data.series[forSeries].values
+				}
+				return [];
+			},
 			hasValues: function () {
-				return data.values.length > 0
+				return (data.series.length > 0) && (data.series[0].values.length > 0)
 			},
 			maxValue: function () {
 				if (data.hasValues()) {
-					return data.values.reduce(function(a, b) {
-					    return Math.max(a, b);
-					});				
+					return data.series.reduce(function(a, b) {
+						return Math.max(a.maxValue(), b.maxValue())
+					})
 				} else {
-					return 0
+					return 0	
 				}
 			},
 			minValue: function () {
 				if (data.hasValues()) {
-					return data.values.reduce(function(a, b) {
-					    return Math.min(a, b);
-					});				
+					return data.series.reduce(function(a, b) {
+						return Math.min(a.minValue(), b.minValue())
+					})
 				} else {
-					return 0
+					return 0	
+				}
+			},
+			maxLength: function () {
+				if (data.hasValues()) {
+					return data.series.reduce(function(a, b) {
+						return Math.max(a.values.length, b.values.length)
+					})
+				} else {
+					return 0	
 				}
 			},
 		}
@@ -337,6 +409,7 @@ audiograph.setup = function() {
 			            console.log(instrument.getParams())
 					}
 		            instrument.connect(audio_context.destination)
+		            data.setup(2)
 		            console.log("playOnStart is:")
 		            console.log(playOnStart)
 		            if (playOnStart) {
@@ -345,12 +418,12 @@ audiograph.setup = function() {
 				})
 		}
 
-		audiograph.setValues = function (values) {
+		audiograph.setValues = function (values, forSeries) {
 			if (audiograph.debug) {
 				console.log("Setting values to:")
 				console.log(values)
 			}
-			data.values = values
+			data.setValues(values, forSeries)
 		}
 
 		audiograph.play = sonification.callback

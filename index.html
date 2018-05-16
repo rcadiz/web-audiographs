@@ -60,7 +60,7 @@
 	}
 	audiograph.sonification = function (playCallback) {
 		console.log("sonificationCallback")
-		audiograph.setValues(getValues())
+		audiograph.setValues(getValues(), 0)
 		playCallback()
 	}
 	audiograph.setup()
