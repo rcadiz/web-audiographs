@@ -39,15 +39,19 @@
 		<p>Explanation paragraph 2</p>
 		<p>Explanation paragraph 3</p>
 		<p>
-			<label for="series">Series data for testing</label>
-			<textarea id="series">50 220 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75</textarea>
+			<label for="series1">Series 1 data for testing</label>
+			<textarea id="series1">50 220 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75 50 25 10 0 25 50 90 75</textarea>
+		</p>
+		<p>
+			<label for="series2">Series 2 data for testing</label>
+			<textarea id="series2">50 55 57 68 78 98 100 88 75 44 22 10 50 55 57 68 78 98 100 88 75 44 22 10 50 55 57 68 78 98 100 88 75 44 22 10</textarea>
 		</p>
 	</div>
 	<div id="audiograph">
 	</div>
 	<script type="text/javascript">
-	getValues = function () {
-		var textArea = document.getElementById("series")
+	getValues = function (elementId) {
+		var textArea = document.getElementById(elementId)
 		var cleanString = textArea.value.replace(/\s/g,' ')
 		var values = cleanString.split(' ').reduce(function (accumulator, value) {
 			var floatValue = parseFloat(value)
@@ -60,7 +64,8 @@
 	}
 	audiograph.sonification = function (playCallback) {
 		console.log("sonificationCallback")
-		audiograph.setValues(getValues(), 0)
+		audiograph.setValues(getValues("series1"), 0)
+		audiograph.setValues(getValues("series2"), 1)
 		playCallback()
 	}
 	audiograph.setup()
