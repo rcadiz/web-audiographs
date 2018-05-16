@@ -8,7 +8,8 @@ audiograph.debug = true
 audiograph.sonification = null
 
 audiograph.setup = function() {
-	return import('https://lab.adapar.net/cita/audiographs/google/instrument.js')
+//	return import('https://lab.adapar.net/cita/audiographs/google/instrument.js')
+	return import('./instrument.js')
 	.then(faust => {
 		var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
 		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
@@ -17,7 +18,7 @@ audiograph.setup = function() {
 		var sonificationCallback = (audiograph.sonification) ? 
 			function () {
 				if (audiograph.debug) {
-					console.log("Calling sonification callback");
+					console.log("Calling sonification callback")
 				}
 				audiograph.sonification(player.start)
 			} 
@@ -25,21 +26,15 @@ audiograph.setup = function() {
 
 		var sonification = {
 			callback: sonificationCallback,
-			freqToPitch: function (freq) {
-				return Math.ceil(((12.0 * Math.log(freq/440.0)) / Math.log(2.0)) + 69.0)
-			},
-			pitchToFreq: function (pitch) {
-		        return 440.0 * Math.pow(2.0, (pitch - 69.0) / 12.0);
-			},
 			scale: {
 				isAbsolute: false,
 				absolute: {
 					min: 0,
 					max: 100,
 				},
-				pitch: {
-					min: 27, // 0:127
-					max: 100, // 0:127
+				frequency: {
+					min: 0,
+					max: 12000,
 				},
 				min: function () {
 					if (sonification.scale.isAbsolute) {
@@ -55,11 +50,14 @@ audiograph.setup = function() {
 						return data.maxValue()
 					}
 				},
-				valueToPitch: function (value) {
+				valueToFrequency: function (value) {
+					if (typeof (value) === "undefined") {
+						return 0
+					}
 					var scaleRange = sonification.scale.max() - sonification.scale.min()
 					var scaledValue = (value - sonification.scale.min()) / scaleRange
-					var pitchRange = sonification.scale.pitch.max - sonification.scale.pitch.min
-					return Math.ceil((scaledValue * pitchRange) + sonification.scale.pitch.min)
+					var freqRange = sonification.scale.frequency.max - sonification.scale.frequency.min
+					return Math.ceil((scaledValue * freqRange) + sonification.scale.frequency.min)
 				},
 			},
 		}
@@ -70,7 +68,7 @@ audiograph.setup = function() {
 			durations: { //all in milliseconds
 				value: function () {
 					if (data.hasValues()) {
-						var steps = data.values.length
+						var steps = data.maxLength()
 						return Math.ceil(player.durations.total / steps)
 					}
 					return 0
@@ -87,27 +85,37 @@ audiograph.setup = function() {
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
 				player.isDiscrete = true
-				console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
+				if (audiograph.debug) {
+					console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
+				}
 			},
 			setContinuousMode: function () {
 				player.isDiscrete = false
-				console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
-			},			
+				if (audiograph.debug) {
+					console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
+				}
+			},	
+			playValues: function (frequency1, frequency2) {
+				instrument.setParamValue('/instrument/freq1', frequency1)
+				instrument.setParamValue('/instrument/freq2', frequency2)
+			},	
 			stop: function () {
 				if (audiograph.debug) {
-					console.log("Player stopping");
+					console.log("Player stopping")
 				}
 				if (player.timeout) {
 					clearTimeout(player.timeout)
 				}
-				instrument.allNotesOff()
+				player.playValues(0, 0)
 			},
 			start: function () {
 				if (audiograph.debug) {
-					console.log("Player starting");
+					console.log("Player starting")
 				}
 				var current = 0
-				var values = data.values
+				var seriesLength = data.maxLength()
+				var series1 = data.getValues(0)
+				var series2 = data.getValues(1)
 				var delay = function () {
 					if (audiograph.debug) {
 						console.log("Delaying next value")
@@ -128,15 +136,18 @@ audiograph.setup = function() {
 					if (audiograph.debug) {
 						console.log('current index in series: ' + current)
 					}
-					if (current < values.length) {
+					if (current < seriesLength) {
 						if (audiograph.debug) {
-							console.log('current value in series: ' + values[current])
+							console.log('current value in series 1: ' + series1[current])
+							console.log('current value in series 2: ' + series2[current])
 						}
-						var pitch = sonification.scale.valueToPitch(values[current])
+						var frequency1 = sonification.scale.valueToFrequency(series1[current])
+						var frequency2 = sonification.scale.valueToFrequency(series2[current])
 						if (audiograph.debug) {
-							console.log('pitch for current value in series: ' + pitch)
+							console.log('frequency for current value in series 1: ' + frequency1)
+							console.log('frequency for current value in series 2: ' + frequency2)
 						}
-						instrument.keyOn(1, pitch, player.velocity)
+						player.playValues(frequency1, frequency2)
 						if (audiograph.debug) {
 							console.log('Value duration: ' + player.durations.value())
 							console.log('Delay duration: ' + player.durations.delayBetweenValues())
@@ -144,33 +155,96 @@ audiograph.setup = function() {
 						player.timeout = setTimeout(callback, player.durations.value())
 					}
 				}
-				if (values.length > 0) {
+				if (audiograph.debug) {
+					console.log('Series length: ' + seriesLength)
+				}
+				if (seriesLength > 0) {
+					if (audiograph.debug) {
+						console.log('Calling first values')
+					}
 					value()
 				}
 			},
 		}
 
+		function Series() {
+			this.values = []			
+		}
+
+		Series.prototype.setValues = function (values) {
+			this.values = values
+		}
+
+		Series.prototype.hasValues = function () {
+			return this.values.length > 0
+		}
+
+		Series.prototype.maxValue = function () {
+			if (this.hasValues()) {
+				return this.values.reduce(function(a, b) {
+				    return Math.max(a, b)
+				});				
+			} else {
+				return 0
+			}
+		}
+
+		Series.prototype.minValue = function () {
+			if (this.hasValues()) {
+				return this.values.reduce(function(a, b) {
+				    return Math.min(a, b)
+				});				
+			} else {
+				return 0
+			}
+		}
+
 		var data = {
-			values: [],
+			series: [],
+			setup: function (totalSeries){
+				for (var index = 0; index < totalSeries; index++) {
+					data.series[index] = new Series()
+				}
+			},
+			setValues: function (values, forSeries) {
+				if (forSeries < data.series.length) {
+					data.series[forSeries].setValues(values)
+				}
+			},
+			getValues: function (forSeries) {
+				if (forSeries < data.series.length) {
+					return data.series[forSeries].values
+				}
+				return [];
+			},
 			hasValues: function () {
-				return data.values.length > 0
+				return (data.series.length > 0) && (data.series[0].values.length > 0)
 			},
 			maxValue: function () {
 				if (data.hasValues()) {
-					return data.values.reduce(function(a, b) {
-					    return Math.max(a, b);
-					});				
+					return data.series.reduce(function(a, b) {
+						return Math.max(a.maxValue(), b.maxValue())
+					})
 				} else {
-					return 0
+					return 0	
 				}
 			},
 			minValue: function () {
 				if (data.hasValues()) {
-					return data.values.reduce(function(a, b) {
-					    return Math.min(a, b);
-					});				
+					return data.series.reduce(function(a, b) {
+						return Math.min(a.minValue(), b.minValue())
+					})
 				} else {
-					return 0
+					return 0	
+				}
+			},
+			maxLength: function () {
+				if (data.hasValues()) {
+					return data.series.reduce(function(a, b) {
+						return Math.max(a.values.length, b.values.length)
+					})
+				} else {
+					return 0	
 				}
 			},
 		}
@@ -280,28 +354,30 @@ audiograph.setup = function() {
 
 			var durationLabel = createLabel("Audiograph duration (in milliseconds)", inputDuration)
 
-			var minFreq = Math.ceil(sonification.pitchToFreq(0))
-			var maxFreq = Math.ceil(sonification.pitchToFreq(127))
+			var minFreq = Math.ceil(sonification.scale.frequency.min)
+			var maxFreq = Math.ceil(sonification.scale.frequency.max)
 
-			var inputMinFreq = createInput("freq-min", sonification.pitchToFreq(sonification.scale.pitch.min), "range", function () {
+			var inputMinFreq = createInput("freq-min", sonification.scale.frequency.min, "range", function () {
 				if (inputMinFreq.valueAsNumber > inputMaxFreq.valueAsNumber) {
 					inputMinFreq.valueAsNumber = inputMaxFreq.valueAsNumber - 1
 				}
-				sonification.scale.pitch.min = sonification.freqToPitch(inputMinFreq.valueAsNumber)
+				sonification.scale.frequency.min = inputMinFreq.valueAsNumber
 			})
 			inputMinFreq.setAttribute("min", minFreq)
 			inputMinFreq.setAttribute("max", maxFreq)
 			inputMinFreq.setAttribute("step", 1)
+			inputMinFreq.value = sonification.scale.frequency.min
 
-			var inputMaxFreq = createInput("freq-max", sonification.pitchToFreq(sonification.scale.pitch.max), "range", function () {
+			var inputMaxFreq = createInput("freq-max", sonification.scale.frequency.max, "range", function () {
 				if (inputMaxFreq.valueAsNumber < inputMinFreq.valueAsNumber) {
 					inputMaxFreq.valueAsNumber = inputMinFreq.valueAsNumber - 1
 				}
-				sonification.scale.pitch.max = sonification.freqToPitch(inputMaxFreq.valueAsNumber)
+				sonification.scale.frequency.max = inputMaxFreq.valueAsNumber
 			})
 			inputMaxFreq.setAttribute("min", minFreq)
 			inputMaxFreq.setAttribute("max", maxFreq)
 			inputMaxFreq.setAttribute("step", 1)
+			inputMaxFreq.value = sonification.scale.frequency.max
 
 			var minFreqLabel = createLabel("Minimum frequency (from " + minFreq + "Hz to " + maxFreq + "Hz)", inputMinFreq)
 			var maxFreqLabel = createLabel("Maximum frequency (from " + minFreq + "Hz to " + maxFreq + "Hz)", inputMaxFreq)
@@ -329,7 +405,7 @@ audiograph.setup = function() {
 		}
 
 		audiograph.start = function (playOnStart) {
-			faust.default.createinstrument_poly(audio_context, 1024, 6, 
+			faust.default.createinstrument(audio_context, 1024, 
 				function (node) {
 					instrument = node
 					if (audiograph.debug) {
@@ -337,6 +413,7 @@ audiograph.setup = function() {
 			            console.log(instrument.getParams())
 					}
 		            instrument.connect(audio_context.destination)
+		            data.setup(2)
 		            console.log("playOnStart is:")
 		            console.log(playOnStart)
 		            if (playOnStart) {
@@ -345,12 +422,12 @@ audiograph.setup = function() {
 				})
 		}
 
-		audiograph.setValues = function (values) {
+		audiograph.setValues = function (values, forSeries) {
 			if (audiograph.debug) {
 				console.log("Setting values to:")
 				console.log(values)
 			}
-			data.values = values
+			data.setValues(values, forSeries)
 		}
 
 		audiograph.play = sonification.callback
