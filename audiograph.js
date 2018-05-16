@@ -8,7 +8,8 @@ audiograph.debug = true
 audiograph.sonification = null
 
 audiograph.setup = function() {
-	return import('https://lab.adapar.net/cita/audiographs/google/instrument.js')
+//	return import('https://lab.adapar.net/cita/audiographs/google/instrument.js')
+	return import('./instrument.js')
 	.then(faust => {
 		var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
 		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
@@ -95,7 +96,12 @@ audiograph.setup = function() {
 			setContinuousMode: function () {
 				player.isDiscrete = false
 				console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
-			},			
+			},	
+			playValues: function (pitch1, pitch2) {
+				//TODO: change for two pitches
+				//instrument.keyOn(1, pitch1, player.velocity)
+				console.log("PLAYING VALUES")
+			},	
 			stop: function () {
 				if (audiograph.debug) {
 					console.log("Player stopping")
@@ -103,7 +109,9 @@ audiograph.setup = function() {
 				if (player.timeout) {
 					clearTimeout(player.timeout)
 				}
-				instrument.allNotesOff()
+				console.log("SILENCE EVERYTHING")
+				player.playValues(0, 0)
+				//instrument.allNotesOff()
 			},
 			start: function () {
 				if (audiograph.debug) {
@@ -144,8 +152,7 @@ audiograph.setup = function() {
 							console.log('pitch for current value in series 1: ' + pitch1)
 							console.log('pitch for current value in series 2: ' + pitch2)
 						}
-						//TODO: change for two pitches
-						instrument.keyOn(1, pitch1, player.velocity)
+						player.playValues(pitch1, pitch2)
 						if (audiograph.debug) {
 							console.log('Value duration: ' + player.durations.value())
 							console.log('Delay duration: ' + player.durations.delayBetweenValues())
@@ -401,8 +408,9 @@ audiograph.setup = function() {
 		}
 
 		audiograph.start = function (playOnStart) {
-			faust.default.createinstrument_poly(audio_context, 1024, 6, 
+			faust.default.createinstrument(audio_context, 1024, 
 				function (node) {
+console.log("FADSFAFDASadfasdf sf sdfsa dfasdfafdsd")
 					instrument = node
 					if (audiograph.debug) {
 						console.log("Faust DSP params:")
