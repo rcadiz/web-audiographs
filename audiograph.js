@@ -7,9 +7,11 @@ audiograph.initialized = false
 audiograph.debug = true
 audiograph.sonification = null
 
+//var baseLibUrl = './'
+var baseLibUrl = 'https://lab.adapar.net/cita/audiographs/google/'
+
 audiograph.setup = function() {
-//	return import('https://lab.adapar.net/cita/audiographs/google/instrument.js')
-	return import('./instrument.js')
+	return import(baseLibUrl + 'instrument.js')
 	.then(faust => {
 		var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
 		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
@@ -33,8 +35,8 @@ audiograph.setup = function() {
 					max: 100,
 				},
 				frequency: {
-					min: 0,
-					max: 12000,
+					min: 1000,
+					max: 8000,
 				},
 				min: function () {
 					if (sonification.scale.isAbsolute) {
@@ -57,7 +59,10 @@ audiograph.setup = function() {
 					var scaleRange = sonification.scale.max() - sonification.scale.min()
 					var scaledValue = (value - sonification.scale.min()) / scaleRange
 					var freqRange = sonification.scale.frequency.max - sonification.scale.frequency.min
-					return Math.ceil((scaledValue * freqRange) + sonification.scale.frequency.min)
+					var freq = Math.ceil((scaledValue * freqRange) + sonification.scale.frequency.min)
+					if (freq > sonification.scale.frequency.max) freq = sonification.scale.frequency.max
+					if (freq < sonification.scale.frequency.min) freq = sonification.scale.frequency.min
+					return freq;
 				},
 			},
 		}
@@ -73,24 +78,28 @@ audiograph.setup = function() {
 					}
 					return 0
 				},
-				delayBetweenValues: function () {
-					if (player.isDiscrete && data.hasValues()) {
-						//TODO: Handle this gracefully
-						return 400
+				valueForInstrument: function () {
+					var value = player.durations.value()
+					if (player.isDiscrete) {
+						value = Math.ceil(value * 0.8)
 					}
-					return 0
+					return value
 				},
 				total: 3000,
+				min: 3000,
+				max: 10000,
 			},
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
 				player.isDiscrete = true
+				instrument.setParamValue('/instrument/is_discrete', 1)
 				if (audiograph.debug) {
 					console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
 				}
 			},
 			setContinuousMode: function () {
 				player.isDiscrete = false
+				instrument.setParamValue('/instrument/is_discrete', 0)
 				if (audiograph.debug) {
 					console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
 				}
@@ -116,13 +125,6 @@ audiograph.setup = function() {
 				var seriesLength = data.maxLength()
 				var series1 = data.getValues(0)
 				var series2 = data.getValues(1)
-				var delay = function () {
-					if (audiograph.debug) {
-						console.log("Delaying next value")
-					}
-					player.stop()
-					player.timeout = setTimeout(next, player.durations.delayBetweenValues())
-				}
 				var next = function () {
 					if (audiograph.debug) {
 						console.log("Playing next value")
@@ -132,7 +134,6 @@ audiograph.setup = function() {
 					value()
 				}
 				var value = function () {
-					var callback = (player.durations.delayBetweenValues() > 0) ? delay : next
 					if (audiograph.debug) {
 						console.log('current index in series: ' + current)
 					}
@@ -150,9 +151,8 @@ audiograph.setup = function() {
 						player.playValues(frequency1, frequency2)
 						if (audiograph.debug) {
 							console.log('Value duration: ' + player.durations.value())
-							console.log('Delay duration: ' + player.durations.delayBetweenValues())
 						}
-						player.timeout = setTimeout(callback, player.durations.value())
+						player.timeout = setTimeout(next, player.durations.value())
 					}
 				}
 				if (audiograph.debug) {
@@ -289,6 +289,28 @@ audiograph.setup = function() {
 				return input
 			}
 
+			var createRadios = function (inContainer, name, labels, values, handler) {
+				var counter = 0
+				var first = null
+				for (counter = 0; counter < labels.length; counter++) {
+					var radioContainer = createContainer({className: "radio"})
+					var input = createInput(name + '_' + values[counter], values[counter], "radio", function (event) {
+						handler(event.target)
+					})
+					input.name = name
+					var label = createLabel(labels[counter], input)
+					radioContainer.appendChild(input)
+					radioContainer.appendChild(label)
+					inContainer.appendChild(radioContainer)
+					if (first == null) {
+						first = input
+					}
+				}
+				if (first != null) {
+					first.click()
+				}
+			}
+
 			var createContainer = function (args) {
 				var container = document.createElement("div")
 				if (args) {
@@ -297,6 +319,12 @@ audiograph.setup = function() {
 					}
 					if (args.className) {
 						container.setAttribute("class", args.className)
+					}
+					if (args.title) {
+						var title = document.createElement("div")
+						title.innerText = args.title
+						title.setAttribute("class", "container-title")
+						container.appendChild(title)
 					}
 					if (args.elements && args.elements.length && args.elements.length > 0) {
 						args.elements.forEach(function (element) {
@@ -343,19 +371,21 @@ audiograph.setup = function() {
 				checkboxLabel,
 				scaleContainer,
 			]})
-
 			
-			var inputDuration = createInput("duration", player.durations.total, "number", function () {
-				player.durations.total = inputDuration.value
-				console.log(player.durations.value())
-				console.log(player.durations.delayBetweenValues())
+			var inputDuration = createInput("duration", player.durations.total, "range", function () {
+				player.durations.total = inputDuration.valueAsNumber
+				instrument.setParamValue('/instrument/envelop_duration', player.durations.valueForInstrument())
+				if (audiograph.debug) {
+					console.log("Event duration: " + player.durations.value())
+					console.log("Event duration for instrument: " + instrument.getParamValue('/instrument/envelop_duration'))
+				}
 			})
-				console.log(player.durations.value())
+			inputDuration.setAttribute("min", player.durations.min)
+			inputDuration.setAttribute("max", player.durations.max)
+			inputDuration.setAttribute("step", 1)
+			inputDuration.value = player.durations.total
 
-			var durationLabel = createLabel("Audiograph duration (in milliseconds)", inputDuration)
-
-			var minFreq = Math.ceil(sonification.scale.frequency.min)
-			var maxFreq = Math.ceil(sonification.scale.frequency.max)
+			var durationLabel = createLabel("Audiograph duration (from " + player.durations.min + " to " + player.durations.max + " milliseconds)", inputDuration)
 
 			var inputMinFreq = createInput("freq-min", sonification.scale.frequency.min, "range", function () {
 				if (inputMinFreq.valueAsNumber > inputMaxFreq.valueAsNumber) {
@@ -363,8 +393,8 @@ audiograph.setup = function() {
 				}
 				sonification.scale.frequency.min = inputMinFreq.valueAsNumber
 			})
-			inputMinFreq.setAttribute("min", minFreq)
-			inputMinFreq.setAttribute("max", maxFreq)
+			inputMinFreq.setAttribute("min", sonification.scale.frequency.min)
+			inputMinFreq.setAttribute("max", sonification.scale.frequency.max)
 			inputMinFreq.setAttribute("step", 1)
 			inputMinFreq.value = sonification.scale.frequency.min
 
@@ -374,13 +404,13 @@ audiograph.setup = function() {
 				}
 				sonification.scale.frequency.max = inputMaxFreq.valueAsNumber
 			})
-			inputMaxFreq.setAttribute("min", minFreq)
-			inputMaxFreq.setAttribute("max", maxFreq)
+			inputMaxFreq.setAttribute("min", sonification.scale.frequency.min)
+			inputMaxFreq.setAttribute("max", sonification.scale.frequency.max)
 			inputMaxFreq.setAttribute("step", 1)
 			inputMaxFreq.value = sonification.scale.frequency.max
 
-			var minFreqLabel = createLabel("Minimum frequency (from " + minFreq + "Hz to " + maxFreq + "Hz)", inputMinFreq)
-			var maxFreqLabel = createLabel("Maximum frequency (from " + minFreq + "Hz to " + maxFreq + "Hz)", inputMaxFreq)
+			var minFreqLabel = createLabel("Minimum frequency (from " + sonification.scale.frequency.min + "Hz to " + sonification.scale.frequency.max + "Hz)", inputMinFreq)
+			var maxFreqLabel = createLabel("Maximum frequency (from " + sonification.scale.frequency.min + "Hz to " + sonification.scale.frequency.max + "Hz)", inputMaxFreq)
 
 			var modeContainer = createContainer({className: "mode", elements: [
 				createButton("Set audiograph mode to discrete", player.setDiscreteMode),
@@ -393,10 +423,75 @@ audiograph.setup = function() {
 				inputMaxFreq,
 			]})
 
+			var createTimbreSlider = function (instrumentParam) {
+				var slider = createInput("timbre-" + instrumentParam, 100, "range", function () {
+					var value = slider.valueAsNumber / 100
+					instrument.setParamValue('/instrument/' + instrumentParam, value)
+					if (audiograph.debug) {
+						console.log("/instrument/" + instrumentParam + " is now: " + instrument.getParamValue('/instrument/' + instrumentParam))
+					}
+				})
+				slider.setAttribute("min", 0)
+				slider.setAttribute("max", 100)
+				slider.setAttribute("step", 1)
+				return slider
+			}
+
+			var volumeSlider = createTimbreSlider("volume")
+			var volumeLabel = createLabel("Volume", volumeSlider)
+			var brightnessSlider = createTimbreSlider("brightness")
+			var brightnessLabel = createLabel("Brightness", brightnessSlider)
+			var reverbSlider = createTimbreSlider("reverb")
+			var reverbLabel = createLabel("Reverb", reverbSlider)
+
+			var timbreType_1Container = createContainer({className: "radios", title: "Type of sound for Series 1"})
+			createRadios(timbreType_1Container, 
+				"type_1",
+				["Sound 1", "Sound 2", "Sound 3"],
+				[1, 2, 3],
+				function (radio) {
+					instrument.setParamValue("/instrument/type_1", radio.value)
+					if (audiograph.debug) {
+						console.log("/instrument/type_1 is now: " + instrument.getParamValue('/instrument/type_1'))
+					}
+				},
+			)
+
+			var timbreType_2Container = createContainer({className: "radios", title: "Type of sound for Series 2"})
+			createRadios(timbreType_2Container, 
+				"type_2",
+				["Sound 1", "Sound 2", "Sound 3"],
+				[1, 2, 3],
+				function (radio) {
+					instrument.setParamValue("/instrument/type_2", radio.value)
+					if (audiograph.debug) {
+						console.log("/instrument/type_2 is now: " + instrument.getParamValue('/instrument/type_2'))
+					}
+				},
+			)
+
+			var timbreContainer = createContainer({className: "timbre", elements: [
+				volumeLabel,
+				volumeSlider,
+				brightnessLabel,
+				brightnessSlider,
+				reverbLabel,
+				reverbSlider,
+				timbreType_1Container,
+				timbreType_2Container,
+			]})
+
+			var toggleTimbreContainerVisibility = function () {
+				timbreContainer.style.display = (timbreContainer.style.display == "none") ? "block" : "none"	
+			}
+
+			toggleTimbreContainerVisibility()
+			
 			var controlContainer = createContainer({className: "control", elements: [
 				createButton("Play audiograph", sonification.callback),
 				createButton("Stop audiograph", player.stop),
-				createButton("Timbre", function () {}),
+				createButton("Timbre", toggleTimbreContainerVisibility),
+				timbreContainer,
 			]})
 
 			element.appendChild(controlContainer)

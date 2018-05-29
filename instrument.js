@@ -5,7 +5,7 @@ Compilation options: wasm, -scal -ftz 2
 */
 
 function getJSONinstrument() {
-	return "{\"name\":\"instrument\",\"filename\":\"instrument\",\"version\":\"2.5.25\",\"options\":\"wasm, -scal -ftz 2\",\"size\":\"104\",\"inputs\":\"0\",\"outputs\":\"2\",\"meta\":[{\"filename\":\"instrument\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"instrument\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"instrument\",\"items\":[{\"type\":\"hslider\",\"label\":\"brightness\",\"address\":\"/instrument/brightness\",\"index\":\"12\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"hslider\",\"label\":\"envelop_duration\",\"address\":\"/instrument/envelop_duration\",\"index\":\"20\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1000\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"freq1\",\"address\":\"/instrument/freq1\",\"index\":\"40\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"0\",\"min\":\"0\",\"max\":\"12000\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"freq2\",\"address\":\"/instrument/freq2\",\"index\":\"76\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"0\",\"min\":\"0\",\"max\":\"12000\",\"step\":\"1\"},{\"type\":\"button\",\"label\":\"is_discrete\",\"address\":\"/instrument/is_discrete\",\"index\":\"24\"},{\"type\":\"hslider\",\"label\":\"reverb\",\"address\":\"/instrument/reverb\",\"index\":\"16\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"hslider\",\"label\":\"volume\",\"address\":\"/instrument/volume\",\"index\":\"8\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]}]}";
+	return "{\"name\":\"instrument\",\"filename\":\"instrument\",\"version\":\"2.5.25\",\"options\":\"wasm, -scal -ftz 2\",\"size\":\"112\",\"inputs\":\"0\",\"outputs\":\"2\",\"meta\":[{\"filename\":\"instrument\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"instrument\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"instrument\",\"items\":[{\"type\":\"hslider\",\"label\":\"brightness\",\"address\":\"/instrument/brightness\",\"index\":\"12\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"hslider\",\"label\":\"envelop_duration\",\"address\":\"/instrument/envelop_duration\",\"index\":\"20\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1000\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"freq1\",\"address\":\"/instrument/freq1\",\"index\":\"48\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"0\",\"min\":\"0\",\"max\":\"12000\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"freq2\",\"address\":\"/instrument/freq2\",\"index\":\"84\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"0\",\"min\":\"0\",\"max\":\"12000\",\"step\":\"1\"},{\"type\":\"button\",\"label\":\"is_discrete\",\"address\":\"/instrument/is_discrete\",\"index\":\"24\"},{\"type\":\"hslider\",\"label\":\"reverb\",\"address\":\"/instrument/reverb\",\"index\":\"16\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"hslider\",\"label\":\"type_1\",\"address\":\"/instrument/type_1\",\"index\":\"28\",\"init\":\"1\",\"min\":\"1\",\"max\":\"3\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"type_2\",\"address\":\"/instrument/type_2\",\"index\":\"32\",\"init\":\"1\",\"min\":\"1\",\"max\":\"3\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"volume\",\"address\":\"/instrument/volume\",\"index\":\"8\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]}]}";
 }
 /*
  faust2webaudio
@@ -25,8 +25,8 @@ function getJSONinstrument() {
 
 'use strict';
 
-//var baseUrl = 'https://lab.adapar.net/cita/audiographs/google/'
-var baseUrl = './'
+//var baseUrl = './'
+var baseUrl = 'https://lab.adapar.net/cita/audiographs/google/'
 
 var faust = faust || {};
 
