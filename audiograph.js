@@ -33,8 +33,8 @@ audiograph.setup = function() {
 					max: 100,
 				},
 				frequency: {
-					min: 0,
-					max: 12000,
+					min: 1000,
+					max: 8000,
 				},
 				min: function () {
 					if (sonification.scale.isAbsolute) {
@@ -81,6 +81,8 @@ audiograph.setup = function() {
 					return 0
 				},
 				total: 3000,
+				min: 3000,
+				max: 10000,
 			},
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
@@ -345,17 +347,15 @@ audiograph.setup = function() {
 			]})
 
 			
-			var inputDuration = createInput("duration", player.durations.total, "number", function () {
-				player.durations.total = inputDuration.value
-				console.log(player.durations.value())
-				console.log(player.durations.delayBetweenValues())
+			var inputDuration = createInput("duration", player.durations.total, "range", function () {
+				player.durations.total = inputDuration.valueAsNumber
 			})
-				console.log(player.durations.value())
+			inputDuration.setAttribute("min", player.durations.min)
+			inputDuration.setAttribute("max", player.durations.max)
+			inputDuration.setAttribute("step", 1)
+			inputDuration.value = player.durations.total
 
-			var durationLabel = createLabel("Audiograph duration (in milliseconds)", inputDuration)
-
-			var minFreq = Math.ceil(sonification.scale.frequency.min)
-			var maxFreq = Math.ceil(sonification.scale.frequency.max)
+			var durationLabel = createLabel("Audiograph duration (from " + player.durations.min + " to " + player.durations.max + " milliseconds)", inputDuration)
 
 			var inputMinFreq = createInput("freq-min", sonification.scale.frequency.min, "range", function () {
 				if (inputMinFreq.valueAsNumber > inputMaxFreq.valueAsNumber) {
@@ -363,8 +363,8 @@ audiograph.setup = function() {
 				}
 				sonification.scale.frequency.min = inputMinFreq.valueAsNumber
 			})
-			inputMinFreq.setAttribute("min", minFreq)
-			inputMinFreq.setAttribute("max", maxFreq)
+			inputMinFreq.setAttribute("min", sonification.scale.frequency.min)
+			inputMinFreq.setAttribute("max", sonification.scale.frequency.max)
 			inputMinFreq.setAttribute("step", 1)
 			inputMinFreq.value = sonification.scale.frequency.min
 
@@ -374,13 +374,13 @@ audiograph.setup = function() {
 				}
 				sonification.scale.frequency.max = inputMaxFreq.valueAsNumber
 			})
-			inputMaxFreq.setAttribute("min", minFreq)
-			inputMaxFreq.setAttribute("max", maxFreq)
+			inputMaxFreq.setAttribute("min", sonification.scale.frequency.min)
+			inputMaxFreq.setAttribute("max", sonification.scale.frequency.max)
 			inputMaxFreq.setAttribute("step", 1)
 			inputMaxFreq.value = sonification.scale.frequency.max
 
-			var minFreqLabel = createLabel("Minimum frequency (from " + minFreq + "Hz to " + maxFreq + "Hz)", inputMinFreq)
-			var maxFreqLabel = createLabel("Maximum frequency (from " + minFreq + "Hz to " + maxFreq + "Hz)", inputMaxFreq)
+			var minFreqLabel = createLabel("Minimum frequency (from " + sonification.scale.frequency.min + "Hz to " + sonification.scale.frequency.max + "Hz)", inputMinFreq)
+			var maxFreqLabel = createLabel("Maximum frequency (from " + sonification.scale.frequency.min + "Hz to " + sonification.scale.frequency.max + "Hz)", inputMaxFreq)
 
 			var modeContainer = createContainer({className: "mode", elements: [
 				createButton("Set audiograph mode to discrete", player.setDiscreteMode),
