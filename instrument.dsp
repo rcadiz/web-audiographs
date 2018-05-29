@@ -9,10 +9,10 @@ freq2		= hslider("freq2[unit:Hz]", 0, 0, 12000, 1); 	// series2 frequency
 volume			 = hslider("volume", 1, 0, 1, 0.1);
 reverb		 	 = hslider("reverb", 1, 0, 1, 0.1);
 brightness		 = hslider("brightness", 1, 0, 1, 0.1);
-//is_discrete		 = hslider("is_discrete", 0, 0, 1, 1) : int;  
 is_discrete 	 = button("is_discrete");
 envelop_duration = hslider("envelop_duration", 1, 0, 1000, 1);
-type			 = hslider("type", 1, 1, 3, 1);  
+type_1			 = hslider("type_1", 1, 1, 3, 1);  
+type_2			 = hslider("type_2", 1, 1, 3, 1);  
 
 // Frequency dependent variables
 gate(0)			 	= 0;
@@ -32,7 +32,7 @@ play_values(f1,f2)	= voice(f1) , voice(f2); //stereo: f1 = left, f2 = rigth
 phasor(f)   = f/ma.SR : (+,1.0:fmod) ~ _ ;
 osc(f)      = phasor(f) * 6.28318530718 : sin;
 
-timbre(freq)= osc(freq) + 0.1*osc(2.0*freq) + 0.25*osc(3.0*freq) + (volume * brightness * reverb  * envelop_duration * is_discrete);
+timbre(freq)= osc(freq) + 0.1*osc(2.0*freq) + 0.25*osc(3.0*freq) + (volume * brightness * reverb  * envelop_duration * is_discrete * type_1 * type_2);
 
 envelop(freq) = gain(freq) : smooth(0.9995)
                 with { smooth(c) = * (1-c) : + ~ * (c) ; } ;
