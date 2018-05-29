@@ -57,7 +57,10 @@ audiograph.setup = function() {
 					var scaleRange = sonification.scale.max() - sonification.scale.min()
 					var scaledValue = (value - sonification.scale.min()) / scaleRange
 					var freqRange = sonification.scale.frequency.max - sonification.scale.frequency.min
-					return Math.ceil((scaledValue * freqRange) + sonification.scale.frequency.min)
+					var freq = Math.ceil((scaledValue * freqRange) + sonification.scale.frequency.min)
+					if (freq > sonification.scale.frequency.max) freq = sonification.scale.frequency.max
+					if (freq < sonification.scale.frequency.min) freq = sonification.scale.frequency.min
+					return freq;
 				},
 			},
 		}
