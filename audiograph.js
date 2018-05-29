@@ -83,12 +83,14 @@ audiograph.setup = function() {
 			velocity: 127, // 0:127
 			setDiscreteMode: function () {
 				player.isDiscrete = true
+				instrument.setParamValue('/instrument/is_discrete', 1)
 				if (audiograph.debug) {
 					console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
 				}
 			},
 			setContinuousMode: function () {
 				player.isDiscrete = false
+				instrument.setParamValue('/instrument/is_discrete', 0)
 				if (audiograph.debug) {
 					console.log("isDiscrete is " + (player.isDiscrete ? "true":"false"))
 				}
