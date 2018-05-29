@@ -25,8 +25,8 @@ function getJSONinstrument() {
 
 'use strict';
 
-//var baseUrl = 'https://lab.adapar.net/cita/audiographs/google/'
-var baseUrl = './'
+//var baseUrl = './'
+var baseUrl = 'https://lab.adapar.net/cita/audiographs/google/'
 
 var faust = faust || {};
 

@@ -7,6 +7,8 @@
 	#audiograph .scale .scale-absolute input,
 	#audiograph .scale .scale-absolute label,
 	#audiograph .control button,
+	#audiograph .mode label,
+	#audiograph .timbre label,
 	#audiograph .mode button
 	{
 		display: block;
@@ -16,12 +18,30 @@
 	#audiograph .scale input[type=checkbox] {
 		margin-left:10px;
     }
+	#audiograph .container-title {
+		margin-top:1em;
+		margin-bottom: 0.5em;
+	}
+	#audiograph .radio label 
+	{
+		display: inline;
+		margin-left: 0.5em;
+	}
 	#audiograph .control,
-	#audiograph .mode,	
+	#audiograph .mode,
+	#audiograph .timbre,
 	#audiograph .scale
 	{
         margin-top:20px;
 		margin-bottom: 20px;
+	}
+	#audiograph .mode label,
+	#audiograph .scale .scale-absolute label {
+		margin-top: 10px;
+	}
+	#audiograph .timbre {
+		margin: 1em;
+		display: none;
 	}
     </style>
   </head>
@@ -29,7 +49,6 @@
 	<div id="audiograph">
 	</div>
 	<script type="text/javascript" src="https://lab.adapar.net/cita/audiographs/google/audiograph.js"></script>
-	<script type="text/javascript" src="https://lab.adapar.net/cita/audiographs/google/keyhandler.js"></script>
     <script type="text/javascript">
     window.addEventListener("load", function () {
       window.focus();
@@ -38,8 +57,13 @@
       google.script.run
         .withSuccessHandler(
            function(data, element) {
-             audiograph.setValues(data)
-             playCallback()
+             if (data.length > 0) {
+               audiograph.setValues(data[0], 0)
+               if (data.length > 1) {
+                 audiograph.setValues(data[1], 1)
+               }
+               playCallback()
+             }
            })
         .withFailureHandler(
            function(msg, element) {
@@ -50,10 +74,7 @@
     }
 	audiograph.setup()
 	.then(() => {
-		if (audiograph.initialized) {
-			keyBindings.add(['KeyP'], audiograph.play)
-			keyBindings.add(['KeyS'], audiograph.stop)
-            
+		if (audiograph.initialized) {            
             audiograph.ui("audiograph")
             audiograph.start(true)
         } else {

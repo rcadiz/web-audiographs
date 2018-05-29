@@ -52,9 +52,20 @@ function showControlPanel() {
 function getData() {
   var data = SpreadsheetApp.getActiveRange().getValues();
   if (Array.isArray(data)) {
+    var series1 = [];
+    var series2 = [];
     var output = [];
     for(var i = 0; i < data.length; i++) {
-      output.push(data[i][0]);
+      series1.push(data[i][0]);
+      if (data[i].lenght > 1) {
+        series2.push(data[i][1]);
+      }
+    }
+    if (series1.length > 0) {
+      output.push(series1);
+      if (series2.length > 0) {
+        output.push(series2);
+      }
     }
     return output;
   }
