@@ -73,13 +73,6 @@ audiograph.setup = function() {
 					}
 					return 0
 				},
-				delayBetweenValues: function () {
-					if (player.isDiscrete && data.hasValues()) {
-						//TODO: Handle this gracefully
-						return 400
-					}
-					return 0
-				},
 				total: 3000,
 				min: 3000,
 				max: 10000,
@@ -118,13 +111,6 @@ audiograph.setup = function() {
 				var seriesLength = data.maxLength()
 				var series1 = data.getValues(0)
 				var series2 = data.getValues(1)
-				var delay = function () {
-					if (audiograph.debug) {
-						console.log("Delaying next value")
-					}
-					player.stop()
-					player.timeout = setTimeout(next, player.durations.delayBetweenValues())
-				}
 				var next = function () {
 					if (audiograph.debug) {
 						console.log("Playing next value")
@@ -134,7 +120,6 @@ audiograph.setup = function() {
 					value()
 				}
 				var value = function () {
-					var callback = (player.durations.delayBetweenValues() > 0) ? delay : next
 					if (audiograph.debug) {
 						console.log('current index in series: ' + current)
 					}
@@ -152,9 +137,8 @@ audiograph.setup = function() {
 						player.playValues(frequency1, frequency2)
 						if (audiograph.debug) {
 							console.log('Value duration: ' + player.durations.value())
-							console.log('Delay duration: ' + player.durations.delayBetweenValues())
 						}
-						player.timeout = setTimeout(callback, player.durations.value())
+						player.timeout = setTimeout(next, player.durations.value())
 					}
 				}
 				if (audiograph.debug) {
