@@ -287,6 +287,28 @@ audiograph.setup = function() {
 				return input
 			}
 
+			var createRadios = function (inContainer, name, labels, values, handler) {
+				var counter = 0
+				var first = null
+				for (counter = 0; counter < labels.length; counter++) {
+					var radioContainer = createContainer({className: "radio"})
+					var input = createInput(name + '_' + values[counter], values[counter], "radio", function (event) {
+						handler(event.target)
+					})
+					input.name = name
+					var label = createLabel(labels[counter], input)
+					radioContainer.appendChild(input)
+					radioContainer.appendChild(label)
+					inContainer.appendChild(radioContainer)
+					if (first == null) {
+						first = input
+					}
+				}
+				if (first != null) {
+					first.click()
+				}
+			}
+
 			var createContainer = function (args) {
 				var container = document.createElement("div")
 				if (args) {
@@ -295,6 +317,12 @@ audiograph.setup = function() {
 					}
 					if (args.className) {
 						container.setAttribute("class", args.className)
+					}
+					if (args.title) {
+						var title = document.createElement("div")
+						title.innerText = args.title
+						title.setAttribute("class", "container-title")
+						container.appendChild(title)
 					}
 					if (args.elements && args.elements.length && args.elements.length > 0) {
 						args.elements.forEach(function (element) {
@@ -341,14 +369,13 @@ audiograph.setup = function() {
 				checkboxLabel,
 				scaleContainer,
 			]})
-
 			
 			var inputDuration = createInput("duration", player.durations.total, "range", function () {
 				player.durations.total = inputDuration.valueAsNumber
 				instrument.setParamValue('/instrument/envelop_duration', player.durations.valueForInstrument())
 				if (audiograph.debug) {
 					console.log("Event duration: " + player.durations.value())
-					console.log("Event duration for instrument: " + player.durations.valueForInstrument())
+					console.log("Event duration for instrument: " + instrument.getParamValue('/instrument/envelop_duration'))
 				}
 			})
 			inputDuration.setAttribute("min", player.durations.min)
@@ -394,10 +421,75 @@ audiograph.setup = function() {
 				inputMaxFreq,
 			]})
 
+			var createTimbreSlider = function (instrumentParam) {
+				var slider = createInput("timbre-" + instrumentParam, 100, "range", function () {
+					var value = slider.valueAsNumber / 100
+					instrument.setParamValue('/instrument/' + instrumentParam, value)
+					if (audiograph.debug) {
+						console.log("/instrument/" + instrumentParam + " is now: " + instrument.getParamValue('/instrument/' + instrumentParam))
+					}
+				})
+				slider.setAttribute("min", 0)
+				slider.setAttribute("max", 100)
+				slider.setAttribute("step", 1)
+				return slider
+			}
+
+			var volumeSlider = createTimbreSlider("volume")
+			var volumeLabel = createLabel("Volume", volumeSlider)
+			var brightnessSlider = createTimbreSlider("brightness")
+			var brightnessLabel = createLabel("Brightness", brightnessSlider)
+			var reverbSlider = createTimbreSlider("reverb")
+			var reverbLabel = createLabel("Reverb", reverbSlider)
+
+			var timbreType_1Container = createContainer({className: "radios", title: "Type of sound for Series 1"})
+			createRadios(timbreType_1Container, 
+				"type_1",
+				["Sound 1", "Sound 2", "Sound 3"],
+				[1, 2, 3],
+				function (radio) {
+					instrument.setParamValue("/instrument/type_1", radio.value)
+					if (audiograph.debug) {
+						console.log("/instrument/type_1 is now: " + instrument.getParamValue('/instrument/type_1'))
+					}
+				},
+			)
+
+			var timbreType_2Container = createContainer({className: "radios", title: "Type of sound for Series 2"})
+			createRadios(timbreType_2Container, 
+				"type_2",
+				["Sound 1", "Sound 2", "Sound 3"],
+				[1, 2, 3],
+				function (radio) {
+					instrument.setParamValue("/instrument/type_2", radio.value)
+					if (audiograph.debug) {
+						console.log("/instrument/type_2 is now: " + instrument.getParamValue('/instrument/type_2'))
+					}
+				},
+			)
+
+			var timbreContainer = createContainer({className: "timbre", elements: [
+				volumeLabel,
+				volumeSlider,
+				brightnessLabel,
+				brightnessSlider,
+				reverbLabel,
+				reverbSlider,
+				timbreType_1Container,
+				timbreType_2Container,
+			]})
+
+			var toggleTimbreContainerVisibility = function () {
+				timbreContainer.style.display = (timbreContainer.style.display == "none") ? "block" : "none"	
+			}
+
+			toggleTimbreContainerVisibility()
+			
 			var controlContainer = createContainer({className: "control", elements: [
 				createButton("Play audiograph", sonification.callback),
 				createButton("Stop audiograph", player.stop),
-				createButton("Timbre", function () {}),
+				createButton("Timbre", toggleTimbreContainerVisibility),
+				timbreContainer,
 			]})
 
 			element.appendChild(controlContainer)
