@@ -57,10 +57,17 @@
       google.script.run
         .withSuccessHandler(
            function(data, element) {
+             audiograph.setValues([], 0)
+             audiograph.setValues([], 1)
+           	 console.log(data)
              if (data.length > 0) {
-               audiograph.setValues(data[0], 0)
-               if (data.length > 1) {
-                 audiograph.setValues(data[1], 1)
+               audiograph.setValues(data.map(function (e) {
+               	 return e[0];
+               }), 0)
+               if (data[0].length > 1) {
+                 audiograph.setValues(data.map(function (e) {
+               	   return e[1];
+                 }), 1)
                }
                playCallback()
              }
