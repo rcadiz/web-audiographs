@@ -76,6 +76,13 @@ audiograph.setup = function() {
 					}
 					return 0
 				},
+				valueForInstrument: function () {
+					var value = player.durations.value()
+					if (player.isDiscrete) {
+						value = Math.ceil(value * 0.8)
+					}
+					return value
+				},
 				total: 3000,
 				min: 3000,
 				max: 10000,
@@ -338,6 +345,11 @@ audiograph.setup = function() {
 			
 			var inputDuration = createInput("duration", player.durations.total, "range", function () {
 				player.durations.total = inputDuration.valueAsNumber
+				instrument.setParamValue('/instrument/envelop_duration', player.durations.valueForInstrument())
+				if (audiograph.debug) {
+					console.log("Event duration: " + player.durations.value())
+					console.log("Event duration for instrument: " + player.durations.valueForInstrument())
+				}
 			})
 			inputDuration.setAttribute("min", player.durations.min)
 			inputDuration.setAttribute("max", player.durations.max)
