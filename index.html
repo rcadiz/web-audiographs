@@ -2,7 +2,6 @@
 <head>
 	<meta charset="UTF-8">
 	<script type="text/javascript" src="audiograph.js"></script>
-	<script type="text/javascript" src="keyhandler.js"></script>
 	<style type="text/css">
 	#audiograph .scale .scale-absolute input,
 	#audiograph .scale .scale-absolute label,
@@ -88,9 +87,6 @@
 	.then(() => {
 		if (audiograph.initialized) {
 			audiograph.ui("audiograph")
-
-			keyBindings.add(['KeyP'], audiograph.play)
-			keyBindings.add(['KeyS'], audiograph.stop)
 
 			window.addEventListener("load", function (event) {
 				audiograph.start(false)
