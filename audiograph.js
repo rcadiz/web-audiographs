@@ -7,9 +7,11 @@ audiograph.initialized = false
 audiograph.debug = true
 audiograph.sonification = null
 
+//var baseLibUrl = './'
+var baseLibUrl = 'https://lab.adapar.net/cita/audiographs/google/'
+
 audiograph.setup = function() {
-//	return import('https://lab.adapar.net/cita/audiographs/google/instrument.js')
-	return import('./instrument.js')
+	return import(baseLibUrl + 'instrument.js')
 	.then(faust => {
 		var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined")
 		var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext()
