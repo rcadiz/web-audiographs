@@ -35,8 +35,8 @@ audiograph.setup = function() {
 					max: 100,
 				},
 				frequency: {
-					min: 1000,
-					max: 8000,
+					min: 100,
+					max: 800,
 				},
 				min: function () {
 					if (sonification.scale.isAbsolute) {
